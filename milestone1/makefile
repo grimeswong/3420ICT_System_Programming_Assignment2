@@ -9,7 +9,7 @@
 CC = clang			#clang or gcc compiler
 
 # Main Functions
-all: sync #all = "target", default functions of sync & clean
+all: sync 		#all = "target", default functions of sync & clean
 
 # Print out the "Hello, world"
 sync: sync.c
