@@ -21,9 +21,9 @@ void *printline(void *string);
 struct dataMutex {
   // int mutexState; // 0 for unlock, 1 for lock
   char *linePtr;
-  pthread_mutex_t main_mutex;    //main mutex
-  pthread_mutex_t child_mutex;   //child mutex
-  pthread_mutex_t third_mutex;   //third mutex
+  pthread_mutex_t mutex1;   //mutex 1
+  pthread_mutex_t mutex2;   //mutex 2
+  pthread_mutex_t mutex3;   //mutex 3
 }; // must put semicolon after this structure
 
 /*
@@ -43,20 +43,20 @@ int main() {
   dataMutex1.linePtr = &charMix[0];         // Assign the pointer point to the first element of the charMix
   dataMutexPtr = &dataMutex1;
 
-  /**** Initialise main mutex ***/
-  rt = pthread_mutex_init(&dataMutex1.main_mutex, NULL);
+  /**** Initialise mutex1 ***/
+  rt = pthread_mutex_init(&dataMutex1.mutex1, NULL);
   if(rt != 0) {
     perror("Couldn't initialise main mutex\n");                         // error message:
   } else {
-    // printf("Main thread: Main mutex initialize successfully\n");     // debugger:
+    // printf("Main thread: mutex1 initialize successfully\n");     // debugger:
   }
 
-  /**** Initialise third mutex ***/
-  rt = pthread_mutex_init(&dataMutex1.third_mutex, NULL);
+  /**** Initialise mutex2 ***/
+  rt = pthread_mutex_init(&dataMutex1.mutex3, NULL);
   if(rt != 0) {
     perror("Couldn't initialise third mutex\n");                        // error message:
   } else {
-    // printf("Main thread: Third mutex initialize successfully\n");    // debugger:
+    // printf("Main thread: mutex3 initialize successfully\n");    // debugger:
   }
 
   /*** Create thread id ***/
@@ -67,11 +67,11 @@ int main() {
   pthread_attr_init(&attr);
 
   /*** Lock Main mutex ***/
-  rt = pthread_mutex_lock(&dataMutex1.main_mutex);
-  if(rt != 0) { perror("Main: Couldn't make lock main thread"); }         // error message:
+  rt = pthread_mutex_lock(&dataMutex1.mutex1);                       // Main lock mutex1
+  if(rt != 0) { perror("Main: Couldn't make lock main thread"); }               // error message:
 
   /*** Create the child thread ***/
-  rt = pthread_create(&tid, NULL, printline, (void *) dataMutexPtr);    //create child thread
+  rt = pthread_create(&tid, NULL, printline, (void *) dataMutexPtr);            //create child thread
   if(rt != 0) { perror("Main: Couldn't create a thread!!!"); }                  // error message:
 
   /*** Read and print line in the parent thread ***/
@@ -79,12 +79,12 @@ int main() {
   trimnewline(dataMutex1.linePtr);                   // Trim the newline character
   // sleep(2); // debugger:
   // printf("Parent thread: dataMutex1linePtr is %s\n", dataMutexPtr->linePtr);      // debugger:
-  pthread_mutex_lock(&dataMutex1.third_mutex);      // lock it that avoiding child thread run after printing
-  pthread_mutex_unlock(&dataMutex1.main_mutex);     // release lock that main thread has read the string
+  pthread_mutex_unlock(&dataMutex1.mutex1);    // release lock that main thread has read the string
+  pthread_mutex_lock(&dataMutex1.mutex3);      // Main thread lock the mutex3 for avoing child thread continuously run after printing
+  // lock it that avoiding main thread run after printing
+  pthread_mutex_lock(&dataMutex1.mutex2);      // test the child mutex; Main blocked until child thread has print out the string and release the mutex
+  pthread_mutex_unlock(&dataMutex1.mutex2);    // unlock for destroy mutex
 
-
-  pthread_mutex_lock(&dataMutex1.child_mutex);      // test the child mutex; Main blocked until child thread has print out the string and release the mutex
-  pthread_mutex_unlock(&dataMutex1.child_mutex);    // child_mutex: release to destroy mutex
 
   printf("Please press enter to exit\n");           // Prompt:
   while(strcmp(fgets(dataMutex1.linePtr, BUFFERSIZE, stdin), "\n")) {
@@ -92,29 +92,27 @@ int main() {
   }
 
   // printf("Enter is pressed\n");                     // debugger:
-  pthread_mutex_unlock(&dataMutex1.third_mutex);     // release lock that main thread can exit
-
+  pthread_mutex_unlock(&dataMutex1.mutex3);     // release lock that main thread can exit
   printf("Child thread is exiting\n");              // Prompt:
-  pthread_mutex_lock(&dataMutex1.main_mutex);       // test the child thread whether is exiting
-  pthread_mutex_unlock(&dataMutex1.main_mutex);     // main_mutex: release to destroy mutex
+
 
   /*** Wait the child thread to join ***/
   rt = pthread_join(tid, NULL);    //  wait to other thread to join
   if (rt != 0) {
     perror("Child thread(s) couldn't joint the main thread\n");     // error message:
   } else {
-    printf("Child thread is gone\n");                               // Prompt:
+    printf("Child thread is gone\n");                               // Prompt:  Confirm the child thread is actually exit
   }
   /*** end: read and print line thread ***/
 
   /*** Destroy everthing(mutex, cond & attr) and confirm all threads are exit correctly
   (otherwise error 16 for mutex is being used(busy)) ***/
-  rt = pthread_mutex_destroy(&dataMutex1.main_mutex);
-  // printf("Destroy main_mutex code: %d\n", rt);          // debugger:
-  rt = pthread_mutex_destroy(&dataMutex1.child_mutex);
-  // printf("Destroy child_mutex code: %d\n", rt);         // debugger:
-  rt = pthread_mutex_destroy(&dataMutex1.third_mutex);
-  // printf("Destroy third_mutex code: %d\n", rt);         // debugger:
+  rt = pthread_mutex_destroy(&dataMutex1.mutex1);
+  if (rt != 0) { printf("Destroy mutex1 code: %d\n", rt); }          // debugger:
+  rt = pthread_mutex_destroy(&dataMutex1.mutex2);
+  if (rt != 0) { printf("Destroy mutex2 code: %d\n", rt); }          // debugger:
+  rt = pthread_mutex_destroy(&dataMutex1.mutex3);
+  if (rt != 0) { printf("Destroy mutex3 code: %d\n", rt); }          // debugger:
 
   pthread_exit(NULL);       // The last thing the main should do
 
@@ -132,28 +130,30 @@ void *printline(void *dataMutexPtr) {
   int rt;
   struct dataMutex *mydataMutex = dataMutexPtr;               // type casting: void * back to correct type of struct
 
-  /*** Initialise child mutex ***/
-  rt = pthread_mutex_init(&(mydataMutex)->child_mutex, NULL);
+  /*** Initialise mutex2 ***/
+  rt = pthread_mutex_init(&(mydataMutex)->mutex2, NULL);
   if(rt != 0) {
     perror("Couldn't initialise third mutex\n");                    // error message:
   } else {
-    // printf("Main thread: Third mutex initialize successfully\n");   // debugger:
+    // printf("Child thread: mutex2 initialize successfully\n");   // debugger:
   }
 
-  pthread_mutex_lock(&(mydataMutex)->child_mutex);              // Child lock the child mutex
-  pthread_mutex_lock(&(mydataMutex)->main_mutex);               // test the main mutex; child blocked until main read to the and release the mutex
+  pthread_mutex_lock(&(mydataMutex)->mutex2);               // Child lock the mutex2
+  pthread_mutex_lock(&(mydataMutex)->mutex1);               // Test the main mutex1; child blocked until main read to the and release the mutex1
 
-  // printf("Child thread: %s\n", mydataMutex->linePtr);           // debugger: test the content of structure
-  printf("%s\n", mydataMutex->linePtr);                         // Prompt: print the string of line read
-  pthread_mutex_unlock(&(mydataMutex)->child_mutex);            // Child unlock the child mutex
-  // printf("Child thread: Waiting for parent signal\n");          // debugger: test the child thread is waiting the parent signal of user has pressed enter
-  pthread_mutex_lock(&(mydataMutex)->third_mutex);              // test the main thread that whether user has pressed "enter", last use of thrid_mutex
-  pthread_mutex_unlock(&(mydataMutex)->third_mutex);            // third_mutex: release to destroy mutex
+
+  printf("%s\n", mydataMutex->linePtr);                    // Prompt: print the string of line read
+  pthread_mutex_unlock(&(mydataMutex)->mutex2);            // Child unlock the mutex2
+  // printf("Child thread: Waiting for parent signal\n");     // debugger: test the child thread is waiting the parent signal of user has pressed enter
+
+  // Waiting for main thread signal for user has press enter
+  pthread_mutex_lock(&(mydataMutex)->mutex3);              // test the main thread that whether user has pressed "enter", last use of thrid_mutex
+  pthread_mutex_unlock(&(mydataMutex)->mutex3);            // mutex3: release to destroy mutex
 
   // sleep(2);  //debugger:
   // printf("Child has received main thread signal, child is exiting\n");  // debugger:
-  // sleep(2); // debugger:
-  pthread_mutex_unlock(&(mydataMutex)->main_mutex);             // Child release lock and child thread exiting
+  // sleep(2 ); // debugger:
+  pthread_mutex_unlock(&(mydataMutex)->mutex1);             // Child release mutex1 and child thread exiting
 
   return NULL;  // to silence the non-void function // or pthread_exit Child thread call to exit
 }
