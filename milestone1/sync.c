@@ -29,7 +29,8 @@ struct dataMutex {
 /*
  *  Main function
  *  Description:  Create child thread and read the line of string, then print out the string.
- *                After that prompt user to press enter, exit the program.
+ *                Child thread wait until main thread prompt user to press enter, then child thread exit the program.
+ *                Main thread wait for all child thread to exit, then exit the entire program
  *                Need to use main and child threads
  *  Parameter:  None.
  *  Return: exit success
@@ -152,7 +153,7 @@ void *printline(void *dataMutexPtr) {
 
   // sleep(2);  //debugger:
   // printf("Child has received main thread signal, child is exiting\n");  // debugger:
-  // sleep(2 ); // debugger:
+  // sleep(2); // debugger:
   pthread_mutex_unlock(&(mydataMutex)->mutex1);             // Child release mutex1 and child thread exiting
 
   return NULL;  // to silence the non-void function // or pthread_exit Child thread call to exit
