@@ -9,15 +9,16 @@
 CC = clang			#clang or gcc compiler
 
 # Main Functions
-all: sync 		#all = "target", default functions of sync & clean
+all: sync sema		#all = "target", default functions of sync & clean
 
 # Print out the "Hello, world"
 sync: sync.c
 	$(CC) -Wall -std=c11 -o bin/sync sync.c
 
- # 	clang -Wall -std=c11 -o Hello Hello.c # Original command
- # 	$(CC) -Wall -std=c11 -o hello hello.c && mv hello ./bin
- # best practice for put the correct path and folder
+# Function of semaphore
+sema: sema.c
+	$(CC) -Wall -std=c11 -o bin/sema sema.c
+
 
 # Clean up the object and executive files
 clean:

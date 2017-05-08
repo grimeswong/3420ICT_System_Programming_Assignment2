@@ -80,8 +80,8 @@ int main() {
   trimnewline(dataMutex1.linePtr);                   // Trim the newline character
   // sleep(2); // debugger:
   // printf("Parent thread: dataMutex1linePtr is %s\n", dataMutexPtr->linePtr);      // debugger:
-  pthread_mutex_unlock(&dataMutex1.mutex1);    // release lock that main thread has read the string
   pthread_mutex_lock(&dataMutex1.mutex3);      // Main thread lock the mutex3 for avoing child thread continuously run after printing
+  pthread_mutex_unlock(&dataMutex1.mutex1);    // release lock that main thread has read the string
   // lock it that avoiding main thread run after printing
   pthread_mutex_lock(&dataMutex1.mutex2);      // test the child mutex; Main blocked until child thread has print out the string and release the mutex
   pthread_mutex_unlock(&dataMutex1.mutex2);    // unlock for destroy mutex
@@ -155,7 +155,6 @@ void *printline(void *dataMutexPtr) {
   // printf("Child has received main thread signal, child is exiting\n");  // debugger:
   // sleep(2); // debugger:
   pthread_mutex_unlock(&(mydataMutex)->mutex1);             // Child release mutex1 and child thread exiting
-
   return NULL;  // to silence the non-void function // or pthread_exit Child thread call to exit
 }
 
