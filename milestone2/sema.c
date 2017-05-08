@@ -6,43 +6,39 @@
 
 /*** Preprocessor ***/
 #include <stdio.h>    //Standard Input/Output library eg. getchar, gets, putchar, puts, sprintf
-#include <stdlib.h>   //General Utilities library eg. atoi, atof, malloc, realloc
-#include <string.h>   //String handling library eg. strcpy, strcat, strcmp
-#include <unistd.h>   //eg. sleep
+// #include <stdlib.h>   //General Utilities library eg. atoi, atof, malloc, realloc
+// #include <string.h>   //String handling library eg. strcpy, strcat, strcmp
+// #include <unistd.h>   //eg. sleep
 #include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
-// #include <semaphore.h>//For using semaphore
-
-
-/*** Function declartion (Prototype) ***/
-void procure(Semaphore *semaphore);
-void vacate(Semaphore *semaphore);
-void semInitialiser(Semaphore *semaphore, int value);
-void semDestructor(Semaphore *semaphore);
+#include "sema.h"//For using semaphore
 
 /*** Structure to store Semahpore and string (input) ***/
-struct semaphore {
+// struct Semaphore {
+//   int value;    // like counter
+//
+//
+// }; // must put semicolon after this structure
 
-  char *linePtr;
-  int value;    // like count
+/*** Function declartion (Prototype) ***/
+void procure(struct Semaphore *semaphore);
+void vacate(struct Semaphore *semaphore);
+void semInitialiser(struct Semaphore *semaphore);
+// void semDestructor(Semaphore *semaphore);
 
+struct Semaphore sem;
+pthread_cond_t cond;
 
-}; // must put semicolon after this structure
-
-
-/*
- *  Main function
- *  Description:  Create child thread and read the line of string, then print out the string.
- *                Child thread wait until main thread prompt user to press enter, then child thread exit the program.
- *                Main thread wait for all child thread to exit, then exit the entire program
- *                Need to use main and child threads, and use semaphores
- *  Parameter:  None.
- *  Return: exit success
- */
 int main ()
 {
 
-}
+    int rt;
+    /*** condition variables ***/
+    rt = pthread_cond_init(&cond, NULL); //condition variable Initialize
 
+    semInitialiser(&sem);
+    printf("Semaphore value is: %d\n", sem.value);
+    return 0;
+}
 
 /*
  *  Fucntion: semInitialiser
@@ -50,9 +46,12 @@ int main ()
  *  Parameter:  Semaphore.
  *  Return: None
  */
-void semInitialiser(Semaphore *semaphore, int value)
+void semInitialiser(struct Semaphore *semaphore)
 {
-
+  /*** Initialize semaphore value ***/
+  semaphore->value = 1;
+  /*** Initialize mutex ***/
+  pthread_mutex_init(&semaphore->mutex, NULL);
 }
 
 /*
@@ -61,10 +60,10 @@ void semInitialiser(Semaphore *semaphore, int value)
  *  Parameter:  Semaphore.
  *  Return: None
  */
-void semDestructor(Semaphore *semaphore)
-{
-
-}
+// void semDestructor(Semaphore *semaphore)
+// {
+//
+// }
 
 /*
  *  Fucntion: procure (Same function as semWait())
@@ -72,15 +71,23 @@ void semDestructor(Semaphore *semaphore)
  *  Parameter:  Semaphore.
  *  Return: None
  */
-// void procure(Semaphore *semaphore)
-// {
-//     begin_critical_section(semaphore);  // make the following concurrency-safe
-//     while (semaphore->value <= 0)
-// 	wait_for_vacate(semaphore);     // wait for signal from vacate()
-//     semaphore->value--;                 // claim the Semaphore
-//     end_critical_section(semaphore);
-// }
-//
+void procure(struct Semaphore *semaphore)
+{
+  //   begin_critical_section(semaphore);  // make the following concurrency-safe
+  //   while (semaphore->value <= 0)
+	// wait_for_vacate(semaphore);     // wait for signal from vacate()
+  //   semaphore->value--;                 // claim the Semaphore
+  //   end_critical_section(semaphore);
+
+  pthread_cond_wait(&cond, &sem.mutex);
+  while(&sem.value <= 0) {
+    // do nothing
+  }
+  sem.value--;
+  pthread_cond_signal(&cond);
+
+}
+
 
 /*
  *  Fucntion: vacate (Same function as semSignal())
