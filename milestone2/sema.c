@@ -14,8 +14,8 @@
 
 
 /*** Function declartion (Prototype) ***/
-void procure(struct Semaphore *semaphore);
-void vacate(struct Semaphore *semaphore);
+void procure(Semaphore *semaphore);
+void vacate(Semaphore *semaphore);
 int initialiser();
 int semDestructor();
 
@@ -30,6 +30,8 @@ int rt;   // for debugging
  */
 int initialiser()
 {
+
+  // malloc
   /*** Initialize semaphore value ***/
   sem.value = 1;            //
 
@@ -74,7 +76,7 @@ int destructor()
  *  Parameter:  Semaphore.
  *  Return: None
  */
-void procure(struct Semaphore *semaphore)
+void procure(Semaphore *semaphore)
 {
   //   begin_critical_section(semaphore);  // make the following concurrency-safe
   //   while (semaphore->value <= 0)
@@ -82,13 +84,17 @@ void procure(struct Semaphore *semaphore)
   //   semaphore->value--;                 // claim the Semaphore
   //   end_critical_section(semaphore);
 
-  pthread_cond_wait(&sem.condition, &sem.mutex);
-  while(&sem.value <= 0) {
-    // do nothing
-  }
-  sem.value--;
-  pthread_cond_signal(&sem.condition);
 
+  rt = pthread_mutex_lock(&semaphore->mutex);
+  pthread_cond_wait(&semaphore->condition, &semaphore->mutex);
+  printf("procure: locking\n");
+  while(&semaphore->value <= 0) {
+      // do nothing
+      printf("procure loop: locking\n");
+    }
+    semaphore->value--;
+    pthread_cond_signal(&semaphore->condition);
+  rt = pthread_mutex_unlock(&semaphore->mutex);
 }
 
 
@@ -98,10 +104,16 @@ void procure(struct Semaphore *semaphore)
  *  Parameter:  Semaphore.
  *  Return: None
  */
-// void vacate(Semaphore *semaphore)
-// {
+void vacate(Semaphore *semaphore)
+{
 //     begin_critical_section(semaphore);  // make the following concurrency-safe
 //     semaphore->value++;                 // release the Semaphore
 //     signal_vacate(semaphore);           // signal anyone waiting on this
 //     end_critical_section(semaphore);
-// }
+  pthread_mutex_lock(&semaphore->mutex);
+  pthread_cond_wait(&semaphore->condition, &semaphore->mutex);
+  semaphore->value++;
+  pthread_cond_signal(&semaphore->condition);
+  pthread_mutex_unlock(&semaphore->mutex);
+
+}

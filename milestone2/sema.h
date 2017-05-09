@@ -7,15 +7,15 @@
 #ifndef _sema_h
 #define _sema_h
 
-struct Semaphore
+typedef struct Semaphore
 {
   int value;
   pthread_mutex_t mutex;
   pthread_cond_t condition;
-};
+} Semaphore;
 
-void procure(struct Semaphore *semaphore);
-void vacate(struct Semaphore *semaphore);
+void procure(Semaphore *semaphore);
+void vacate(Semaphore *semaphore);
 int initialiser();
 int destructor();
 

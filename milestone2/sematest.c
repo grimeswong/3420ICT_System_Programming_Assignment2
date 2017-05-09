@@ -8,7 +8,7 @@
 #include <stdio.h>    //Standard Input/Output library eg. getchar, gets, putchar, puts, sprintf
 #include <unistd.h>   //eg. sleep
 #include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
-#include "sema.h"     // using the file sema.c
+#include "sema.h"     // using the file sema.c  // the rest of code will be used here
 
 
 int rt;
@@ -23,14 +23,29 @@ int rt;
 int main ()
 {
 
+    struct Semaphore sem;
     //Start: initialiser
     rt = initialiser();   //debugger:
+
+    /*** Create thread ***/
+    // pthread_create
+
+
     if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }               // error message:
     else { printf("Main: Successfully create initialiser\n");}  // debugger:
     // printf("Semaphore value is: %d\n", sem->value);
 
 
+    /*** Testing ***/
 
+    procure(&sem);
+    printf("sematest: locking now\n");
+    vacate(&sem);
+
+    procure(&sem);
+    printf("sematest2: locking now\n");
+    vacate(&sem);
+    /*** Testing end ***/
 
 
     //At the End: destructor
