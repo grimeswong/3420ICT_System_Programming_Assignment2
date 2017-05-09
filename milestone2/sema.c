@@ -22,45 +22,51 @@
 /*** Function declartion (Prototype) ***/
 void procure(struct Semaphore *semaphore);
 void vacate(struct Semaphore *semaphore);
-void semInitialiser(struct Semaphore *semaphore);
+void initialiser();
 // void semDestructor(Semaphore *semaphore);
 
 struct Semaphore sem;
-pthread_cond_t cond;
+int rt;   // for debugging
+
 
 int main ()
 {
 
-    int rt;
-    /*** condition variables ***/
-    rt = pthread_cond_init(&cond, NULL); //condition variable Initialize
 
-    semInitialiser(&sem);
+    rt = initialiser(&sem);   //debugger
+    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }               // error message:
     printf("Semaphore value is: %d\n", sem.value);
     return 0;
 }
 
 /*
- *  Fucntion: semInitialiser
- *  Description:
- *  Parameter:  Semaphore.
+ *  Fucntion: initialiser
+ *  Description: This function is for initialise the semaphore, mutex and the condition variable
+ *  Parameter:  None
  *  Return: None
  */
-void semInitialiser(struct Semaphore *semaphore)
+void initialiser()
 {
   /*** Initialize semaphore value ***/
-  semaphore->value = 1;
+  sem.value = 1;            // use the
+
   /*** Initialize mutex ***/
-  pthread_mutex_init(&semaphore->mutex, NULL);
+  rt = pthread_mutex_init(&sem.mutex, NULL);
+  if(rt != 0) { perror("Initialiser: couldn't initialise a mutex\n"); }               // error message:
+
+  /*** Initialize condition variable ***/
+  rt = pthread_cond_init(&sem.condition, NULL);
+  if(rt != 0) { perror("Initialiser: couldn't initialise a condition variable\n"); }               // error message:
+
 }
 
 /*
- *  Fucntion: semDestructor
+ *  Fucntion: destructor
  *  Description: Cleans up semaphores, mutex, condition variable, and release memory allocation
- *  Parameter:  Semaphore.
+ *  Parameter:  None
  *  Return: None
  */
-// void semDestructor(Semaphore *semaphore)
+// void destructor(Semaphore *semaphore)
 // {
 //
 // }
@@ -79,12 +85,12 @@ void procure(struct Semaphore *semaphore)
   //   semaphore->value--;                 // claim the Semaphore
   //   end_critical_section(semaphore);
 
-  pthread_cond_wait(&cond, &sem.mutex);
+  pthread_cond_wait(&sem.condition, &sem.mutex);
   while(&sem.value <= 0) {
     // do nothing
   }
   sem.value--;
-  pthread_cond_signal(&cond);
+  pthread_cond_signal(&sem.condition);
 
 }
 

@@ -13,9 +13,12 @@ struct Semaphore
 {
   int value;
   pthread_mutex_t mutex;
+  pthread_cond_t condition;
 };
 
 void procure(struct Semaphore *semaphore);
 void vacate(struct Semaphore *semaphore);
+void initialiser();
+void destructor();
 
 #endif
