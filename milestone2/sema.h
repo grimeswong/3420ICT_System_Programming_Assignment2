@@ -4,8 +4,6 @@
 //  Program: sema.h
 //  Purpose: Header file for prototype of semaphore
 
-
-
 #ifndef _sema_h
 #define _sema_h
 

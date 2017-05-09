@@ -22,24 +22,6 @@ int semDestructor();
 struct Semaphore sem;
 int rt;   // for debugging
 
-
-int main ()
-{
-    //initialiser
-    rt = initialiser();   //debugger:
-    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }               // error message:
-    else { printf("Main: Successfully create initialiser\n");}  // debugger:
-    printf("Semaphore value is: %d\n", sem.value);
-
-    //destructor
-    rt = destructor();    //debugger:
-    if(rt != 0) { perror("Main: couldn't use destructor"); }               // error message:
-    else { printf("Main: Successfully destroy related stuffs\n");}  // debugger:
-
-
-    return 0;
-}
-
 /*
  *  Fucntion: initialiser
  *  Description: This function is for initialise the semaphore, mutex and the condition variable
@@ -49,17 +31,17 @@ int main ()
 int initialiser()
 {
   /*** Initialize semaphore value ***/
-  sem.value = 1;            // use the
+  sem.value = 1;            //
 
   /*** Initialize mutex ***/
   rt = pthread_mutex_init(&sem.mutex, NULL);
-  if(rt != 0) { perror("Initialiser: couldn't initialise a mutex\n"); }               // error message:
-  else { printf("initialiser: Successfully initialise a mutex\n");}  // debugger:
+  if(rt != 0) { perror("Initialiser: couldn't initialise a mutex\n"); }                     // error message:
+  else { printf("initialiser: Successfully initialise a mutex\n");}                         // debugger:
 
   /*** Initialize condition variable ***/
   rt = pthread_cond_init(&sem.condition, NULL);
-  if(rt != 0) { perror("Initialiser: couldn't initialise a condition variable\n"); }               // error message:
-  else { printf("initialiser: Successfully initialise a condition variable\n");}  // debugger:
+  if(rt != 0) { perror("Initialiser: couldn't initialise a condition variable\n"); }        // error message:
+  else { printf("initialiser: Successfully initialise a condition variable\n");}            // debugger:
 
   return 0; //return 0 if success
 }
@@ -75,11 +57,13 @@ int destructor()
 
   /*** destruct the mutex ***/
   rt = pthread_mutex_destroy(&sem.mutex);
-  if(rt != 0) { perror("destructor: couldn't destruct a mutex\n"); }               // error message:
+  if(rt != 0) { perror("destructor: couldn't destruct a mutex\n"); }                         // error message:
+  else { printf("destructor: Successfully destruct a mutex\n");}                             // debugger:
 
   /*** destruct the condition variable ***/
   rt = pthread_cond_destroy(&sem.condition);
-  if(rt != 0) { perror("destructor: couldn't destruct a condition variable\n"); }               // error message:
+  if(rt != 0) { perror("destructor: couldn't destruct a condition variable\n"); }            // error message:
+  else { printf("destructor: Successfully destruct a condition variable\n");}                             // debugger:
 
   return 0; //return 0 if success
 }
