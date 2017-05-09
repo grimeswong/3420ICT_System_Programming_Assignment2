@@ -12,18 +12,12 @@
 #include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
 #include "sema.h"//For using semaphore
 
-/*** Structure to store Semahpore and string (input) ***/
-// struct Semaphore {
-//   int value;    // like counter
-//
-//
-// }; // must put semicolon after this structure
 
 /*** Function declartion (Prototype) ***/
 void procure(struct Semaphore *semaphore);
 void vacate(struct Semaphore *semaphore);
-void initialiser();
-// void semDestructor(Semaphore *semaphore);
+int initialiser();
+int semDestructor();
 
 struct Semaphore sem;
 int rt;   // for debugging
@@ -31,11 +25,18 @@ int rt;   // for debugging
 
 int main ()
 {
-
-
-    rt = initialiser(&sem);   //debugger
+    //initialiser
+    rt = initialiser();   //debugger:
     if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }               // error message:
+    else { printf("Main: Successfully create initialiser\n");}  // debugger:
     printf("Semaphore value is: %d\n", sem.value);
+
+    //destructor
+    rt = destructor();    //debugger:
+    if(rt != 0) { perror("Main: couldn't use destructor"); }               // error message:
+    else { printf("Main: Successfully destroy related stuffs\n");}  // debugger:
+
+
     return 0;
 }
 
@@ -43,9 +44,9 @@ int main ()
  *  Fucntion: initialiser
  *  Description: This function is for initialise the semaphore, mutex and the condition variable
  *  Parameter:  None
- *  Return: None
+ *  Return: int 0 if success
  */
-void initialiser()
+int initialiser()
 {
   /*** Initialize semaphore value ***/
   sem.value = 1;            // use the
@@ -53,23 +54,35 @@ void initialiser()
   /*** Initialize mutex ***/
   rt = pthread_mutex_init(&sem.mutex, NULL);
   if(rt != 0) { perror("Initialiser: couldn't initialise a mutex\n"); }               // error message:
+  else { printf("initialiser: Successfully initialise a mutex\n");}  // debugger:
 
   /*** Initialize condition variable ***/
   rt = pthread_cond_init(&sem.condition, NULL);
   if(rt != 0) { perror("Initialiser: couldn't initialise a condition variable\n"); }               // error message:
+  else { printf("initialiser: Successfully initialise a condition variable\n");}  // debugger:
 
+  return 0; //return 0 if success
 }
 
 /*
  *  Fucntion: destructor
  *  Description: Cleans up semaphores, mutex, condition variable, and release memory allocation
  *  Parameter:  None
- *  Return: None
+ *  Return: int 0 if success
  */
-// void destructor(Semaphore *semaphore)
-// {
-//
-// }
+int destructor()
+{
+
+  /*** destruct the mutex ***/
+  rt = pthread_mutex_destroy(&sem.mutex);
+  if(rt != 0) { perror("destructor: couldn't destruct a mutex\n"); }               // error message:
+
+  /*** destruct the condition variable ***/
+  rt = pthread_cond_destroy(&sem.condition);
+  if(rt != 0) { perror("destructor: couldn't destruct a condition variable\n"); }               // error message:
+
+  return 0; //return 0 if success
+}
 
 /*
  *  Fucntion: procure (Same function as semWait())

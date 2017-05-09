@@ -18,7 +18,7 @@ struct Semaphore
 
 void procure(struct Semaphore *semaphore);
 void vacate(struct Semaphore *semaphore);
-void initialiser();
-void destructor();
+int initialiser();
+int destructor();
 
 #endif
