@@ -29,6 +29,7 @@ int main ()
     int rt; // for catching error
 
     pthread_t t_child;
+    Semaphore sem, *semPtr;
 
     //Start: initialiser
     rt = initialiser();   //debugger:

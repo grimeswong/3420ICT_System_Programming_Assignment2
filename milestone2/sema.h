@@ -17,7 +17,7 @@ typedef struct Semaphore
 
 void procure(Semaphore *semaphore);
 void vacate(Semaphore *semaphore);
-int initialiser(Semaphore *semaphore);
-int destructor(Sempahore *semaphore);
+int initialiser();
+int destructor();
 
 #endif

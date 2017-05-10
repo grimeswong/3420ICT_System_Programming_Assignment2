@@ -8,10 +8,11 @@
 #include <stdio.h>    //Standard Input/Output library eg. getchar, gets, putchar, puts, sprintf
 #include <stdlib.h>   //General Utilities library eg. atoi, atof, malloc, realloc
 #include <unistd.h>   //eg. sleep
+#include <string.h>   //String handling library eg. strcpy, strcat, strcmp
 #include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
 #include "sema.h"
 
-
+#define BUFFERSIZE 128
 
 /*** Function declartion (Prototype) ***/
 void procure(Semaphore *semaphore);
@@ -38,11 +39,14 @@ int main ()
 
     /*** Local variables ***/
     int rt; // for catching error
+    char charMix[BUFFERSIZE];               // Create an array for maximum 128 characters
 
     pthread_t t_child;
 
     //Start: initialiser
     rt = initialiser();   //debugger:
+    semPtr->linePtr = &charMix[0];
+
     if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }          // error message:
     // else { printf("Main: Successfully create initialiser\n");}  // debugger:
 
@@ -57,6 +61,9 @@ int main ()
 
     // sleep(2);
     printf("Main: printing in the main thread\n");
+    /*** Read and print line in the parent thread ***/
+    fgets(semPtr->linePtr, BUFFERSIZE, stdin);      // Read the line
+    // trimnewline(dataMutex1.linePtr);                   // Trim the newline character
     vacate(semPtr);
 
 
@@ -204,6 +211,7 @@ void vacate(Semaphore *semaphore)
    printf("Child: sPtr address is %x\n", (unsigned int) sPtr);                // debugger: address
   //  printf("Child: value is %d\n", sPtr->value);                               // debugger: value
    printf("Child: printing in the child thread\n");
+   printf("%s", sPtr->linePtr);
    vacate(sem);
 
    sleep(3);
