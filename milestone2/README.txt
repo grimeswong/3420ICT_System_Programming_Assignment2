@@ -1,9 +1,7 @@
 Q5. Add a short test report to your documentation
 
-A5. The mutex and semaphore(binary semaphore which use 1 and 0) are similar in this case.
-Mutex can be get twice if acquire by the same owner that will not affect the program because Mutex only
-has two states which is locked and unlocked. But if using semaphore with the same
-situation above that will become deadlock because this semaphore has no queue in it
-that no other thread can unlock it (although semaphore can be signal by other thread that not like
-mutex which can only unlock by its owner). And semaphore can avoid race condition if the semaphore has
-the queue ability.  
+A5. The main different between mutex and semaphore (if semaphore initial value using 0) is that semaphore can unlock mutex by signal by other thread,
+but mutex can only unlock by it's owner thread. Also, the interchange of the threads access is not be controlled well if just using mutex alone.
+In this program, the main thread can use signal to unlock the blocked child thread by increase one in the procure function that allow blocked thread to
+executed from the state of waiting to running, then if the main thread try to get the semaphore, the child thread need to notify the semaphore from -1 to
+0 which the main thread can continue to execute the critical section.
