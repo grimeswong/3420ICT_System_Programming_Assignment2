@@ -18,14 +18,14 @@
 void procure(Semaphore *semaphore);
 void vacate(Semaphore *semaphore);
 int initialiser();
-int semDestructor();
+int destructor();
 
 /*** Function declaration (prototype) ***/
 void *printline(void *string);
 
+
+/*** Global Variable ***/
 Semaphore sem, *semPtr;
-
-
 int rt;   // for debugging
 
 /*
@@ -38,33 +38,31 @@ int main ()
 {
 
     /*** Local variables ***/
-    int rt; // for catching error
     char charMix[BUFFERSIZE];               // Create an array for maximum 128 characters
-
     pthread_t t_child;
 
-    //Start: initialiser
-    rt = initialiser();   //debugger:
-    semPtr->linePtr = &charMix[0];
-
-    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }          // error message:
+    /*** Start: initialiser ***/
+    rt = initialiser();
+    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }           // error message:
     // else { printf("Main: Successfully create initialiser\n");}  // debugger:
 
-    // printf("Main: Initialised semaphore value is: %d\n", semPtr->value);         // debugger: value
-    printf("Main: sem address is: %x\n", (unsigned) semPtr);                        // debugger: address
+    semPtr->linePtr = &charMix[0];  //assign ptr to character array
+
+    // printf("Main: Initialised semaphore value is: %d\n", semPtr->value);       // debugger: value
+    printf("Main: sem address is: %x\n", (unsigned) semPtr);                      // debugger: address
     procure(semPtr);                                                              // lock the mutex
     printf("Main: locking the mutex now\n");
 
     /*** Create the child thread ***/
-    rt = pthread_create(&t_child, NULL, printline, (void *) semPtr);               //create child thread
-    if(rt != 0) { perror("Main: Couldn't create a thread!!!"); }                 // error message:
+    rt = pthread_create(&t_child, NULL, printline, (void *) semPtr);              // create child thread
+    if(rt != 0) { perror("Main: Couldn't create a thread!!!"); }                  // error message:
 
     // sleep(2);
     printf("Main: printing in the main thread\n");
     /*** Read and print line in the parent thread ***/
     fgets(semPtr->linePtr, BUFFERSIZE, stdin);      // Read the line
-    // trimnewline(dataMutex1.linePtr);                   // Trim the newline character
-    vacate(semPtr);
+
+    vacate(semPtr);                                                               // notify semaphore
 
 
     sleep(3);         // Need to lock it here
@@ -81,12 +79,13 @@ int main ()
     } else {
       printf("Child thread is gone\n");                               // Prompt:  Confirm the child thread is actually exit
     }
-    //At the End: destructor
+
+    /*** At the End: destructor ***/
     rt = destructor();    //debugger:
     if(rt != 0) { perror("Main: couldn't use destructor"); }               // error message:
-    else { printf("Main: Successfully destroy related stuffs\n"); }  // debugger:
+    else { printf("Main: Successfully destroy related stuffs\n"); }        // debugger: success
 
-
+    pthread_exit(NULL);       // The last thing the main should do
 
     return 0;
 }
@@ -134,12 +133,12 @@ int destructor()
   /*** destruct the mutex ***/
   rt = pthread_mutex_destroy(&sem.mutex);
   if(rt != 0) { perror("destructor: couldn't destruct a mutex\n"); }                         // error message:
-  // else { printf("destructor: Successfully destruct a mutex\n");}                             // debugger:
+  else { printf("destructor: Successfully destruct a mutex\n");}                             // debugger:
 
   /*** destruct the condition variable ***/
   rt = pthread_cond_destroy(&sem.condition);
   if(rt != 0) { perror("destructor: couldn't destruct a condition variable\n"); }            // error message:
-  // else { printf("destructor: Successfully destruct a condition variable\n");}                             // debugger:
+  else { printf("destructor: Successfully destruct a condition variable\n");}                             // debugger:
 
   return 0; //return 0 if success
 }
@@ -162,13 +161,13 @@ void procure(Semaphore *semaphore)
   // printf("procure: sem address is %x\n", (unsigned int) semaphore);             // debugger: address
   rt = pthread_mutex_lock (&semaphore->mutex);
   if (rt != 0) { printf("procure: Can't not get the lock\n"); }
-  // else { printf("procure: get the lock\n"); }                                      // debugger: success
+  else { printf("procure: get the lock\n"); }                                      // debugger: success
   // printf("procure: sem address is %x\n", (unsigned int) semaphore);             // debugger: address
-  // printf("procure: locking\n");                                                    //debugger:
+  printf("procure: locking\n");                                                    //debugger:
   // printf("procure: pre value is: %d\n", semaphore->value);
 
   while(semaphore->value <= 0) {
-    // printf("procure loop: locking\n");                                             // debugger:
+    printf("procure loop: locking\n");
     pthread_cond_wait(&semaphore->condition, &semaphore->mutex);
   }
   semaphore->value--;
@@ -201,11 +200,14 @@ void vacate(Semaphore *semaphore)
 
 }
 
-
-
+/*
+ *  Description: print out the line of user entered
+ *  Parameter: the pointer address of Semaphore
+ *             type casting back to strcture Semaphore for access its members (value, linePtr, mutex, condition)
+ *  Return: NULL
+ */
  void *printline (void *sem)
  {
-   // int rt;
    procure(sem);
    Semaphore *sPtr = sem;                                                     // type casting: void * back to correct type of Semaphore (aka struct Semaphore)
    printf("Child: sPtr address is %x\n", (unsigned int) sPtr);                // debugger: address

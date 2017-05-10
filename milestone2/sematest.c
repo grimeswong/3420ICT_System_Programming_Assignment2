@@ -32,7 +32,7 @@ int main ()
     Semaphore sem, *semPtr;
 
     //Start: initialiser
-    rt = initialiser();   //debugger:
+    rt = initialiser(sem);   //debugger:
     if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }          // error message:
     // else { printf("Main: Successfully create initialiser\n");}  // debugger:
 
@@ -50,7 +50,7 @@ int main ()
     vacate(semPtr);
 
 
-    sleep(3);         // Need to lock it here
+    // sleep(3);         // Need to lock it here
 
 
     procure(semPtr);
