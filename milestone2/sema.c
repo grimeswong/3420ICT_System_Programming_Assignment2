@@ -21,8 +21,7 @@ int destructor(Semaphore *semaphore);
 /*** Function declaration (prototype) ***/
 void *printline(void *string);
 
-/*** Global Variable ***/
-// Semaphore sem;
+/*** Global variables ***/
 int rt;   // for debugging
 
 /*** main function for testing only ***/
@@ -48,7 +47,7 @@ int initialiser(Semaphore *semaphore)
   // printf("Initialiser: semaphore address: %x\n", (unsigned int) semaphore);                          // debugger: address
 
   /*** Initialize semaphore value ***/
-  semaphore->value = 1;    // 1 is correct, wait is 0
+  semaphore->value = 0;    // 1 binary(critical section), 0 for synchroniztion
   // printf("sem->value is %d\n", semPtr->value);                                           //debugger: value
 
   /*** Initialize mutex ***/

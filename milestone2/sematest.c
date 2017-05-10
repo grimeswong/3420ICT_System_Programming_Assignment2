@@ -24,7 +24,7 @@ int rt = 0;   // catching error
 struct DataSem {
   // int mutexState; // 0 for unlock, 1 for lock
   char *linePtr;
-  Semaphore sem1, sem2, sem3;
+  Semaphore sem1, sem2;
 } DataSem; // must put semicolon after this structure
 
 /*
@@ -52,17 +52,13 @@ int main ()
     rt = initialiser(&dataPtr->sem2);
     if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }           // error message:
     // else { printf("Main: Successfully create initialiser\n");}  // debugger:
-    rt = initialiser(&dataPtr->sem3);
-    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }           // error message:
-    // else { printf("Main: Successfully create initialiser\n");}  // debugger:
-
 
     dataPtr->linePtr = &charMix[0];  //assign ptr to character array
 
     // printf("Main: Initialised semaphore value is: %d\n", semPtr->value);       // debugger: value
     // printf("Main: sem address is: %x\n", (unsigned) dataPtr->sem1);                      // debugger: address
-    procure(&dataPtr->sem1);  // lock the mutex 1.)
-    procure(&dataPtr->sem3);
+
+
     printf("Main: locking the mutex now\n");
 
     /*** Create the child thread ***/
@@ -70,6 +66,7 @@ int main ()
     if(rt != 0) { perror("Main: Couldn't create a thread!!!"); }                  // error message:
 
     printf("Main: printing in the main thread\n");                                // debugger:
+
     /*** Read and print line in the parent thread ***/
     fgets(dataPtr->linePtr, BUFFERSIZE, stdin);      // Read the line
     vacate(&dataPtr->sem1);       // notify child thread 4.)
@@ -79,12 +76,8 @@ int main ()
     while(strcmp(fgets(dataPtr->linePtr, BUFFERSIZE, stdin), "\n")) {
       printf("Please press enter to exit\n");         // Prompt:
     }
-    vacate(&dataPtr->sem3);
-    vacate(&dataPtr->sem2);
 
-
-
-
+    vacate(&dataPtr->sem1);
 
 
     /*** Wait the child thread to join ***/
@@ -114,22 +107,17 @@ int main ()
  void *printline (void *data)
  {
    struct DataSem *dPtr = data;                                                  // type casting: void * back to correct type of Semaphore (aka struct Semaphore)
-   procure(&dPtr->sem2);  // lock the mutex 2.)
-
   //  printf("Child: sPtr address is %x\n", (unsigned int) &dPtr->sem1);         // debugger: address
   //  printf("Child: value is %d\n", sPtr->value);                               // debugger: value
    procure(&dPtr->sem1);    // put in queue sem1 3.)
-   printf("Child: printing in the child thread\n");
+   printf("Child: printing in the child thread\n");                              // debugger: message
    printf("%s", dPtr->linePtr);
+
    vacate(&dPtr->sem2);     // notify main thread
 
-
-   //need to block here
-   procure(&dPtr->sem3);
+   procure(&dPtr->sem1);
+  //  sleep(3);                                                                    // debugger:
    printf("Child is exiting...\n");
-   vacate(&dPtr->sem3);
-
-
 
    return NULL;
  }
