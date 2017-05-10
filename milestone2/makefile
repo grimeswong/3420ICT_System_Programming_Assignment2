@@ -16,8 +16,8 @@ sync: sync.c
 	$(CC) -Wall -std=c11 -o bin/sync sync.c
 
 # Function of semaphore
-sema: sema.c
-	$(CC) -Wall -std=c11 -o bin/sema sema.c
+sema: sema.c sematest.c
+	$(CC) -Wall -std=c11 -o bin/sema sema.c sematest.c
 
 # Clean up the object and executive files
 clean:
