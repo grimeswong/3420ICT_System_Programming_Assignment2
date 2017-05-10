@@ -45,8 +45,7 @@ int initialiser(Semaphore *semaphore)
   // Semaphore *semPtr = malloc(sizeof(&sem));
   // semPtr = &sem;
 
-  // semaphore = malloc(sizeof(semaphore));
-  printf("Initialiser: semaphore address: %x\n", (unsigned int) semaphore);                          // debugger: address
+  // printf("Initialiser: semaphore address: %x\n", (unsigned int) semaphore);                          // debugger: address
 
   /*** Initialize semaphore value ***/
   semaphore->value = 1;    // 1 is correct, wait is 0
@@ -55,12 +54,12 @@ int initialiser(Semaphore *semaphore)
   /*** Initialize mutex ***/
   rt = pthread_mutex_init(&semaphore->mutex, NULL);
   if(rt != 0) { perror("Initialiser: couldn't initialise a mutex\n"); }                     // error message:
-  else { printf("initialiser: Successfully initialise a mutex\n");}                         // debugger: success
+  // else { printf("initialiser: Successfully initialise a mutex\n");}                         // debugger: success
 
   /*** Initialize condition variable ***/
   rt = pthread_cond_init(&semaphore->condition, NULL);
   if(rt != 0) { perror("Initialiser: couldn't initialise a condition variable\n"); }        // error message:
-  else { printf("initialiser: Successfully initialise a condition variable\n");}            // debugger: success
+  // else { printf("initialiser: Successfully initialise a condition variable\n");}            // debugger: success
 
   return 0; //return 0 if success
 }
@@ -84,6 +83,8 @@ int destructor(Semaphore *semaphore)
   if(rt != 0) { perror("destructor: couldn't destruct a condition variable\n"); }            // error message:
   else { printf("destructor: Successfully destruct a condition variable\n");}                             // debugger:
 
+  // free(semaphore);
+
   return 0; //return 0 if success
 }
 
@@ -105,13 +106,13 @@ void procure(Semaphore *semaphore)
   // printf("procure: sem address is %x\n", (unsigned int) semaphore);             // debugger: address
   rt = pthread_mutex_lock (&semaphore->mutex);
   if (rt != 0) { printf("procure: Can't not get the lock\n"); }
-  else { printf("procure: get the lock\n"); }                                      // debugger: success
+  // else { printf("procure: get the lock\n"); }                                      // debugger: success
   // printf("procure: sem address is %x\n", (unsigned int) semaphore);             // debugger: address
-  printf("procure: locking\n");                                                    //debugger:
+  // printf("procure: locking\n");                                                    //debugger:
   // printf("procure: pre value is: %d\n", semaphore->value);
 
   while(semaphore->value <= 0) {
-    printf("procure loop: locking\n");
+    // printf("procure loop: locking\n");
     pthread_cond_wait(&semaphore->condition, &semaphore->mutex);
   }
   semaphore->value--;

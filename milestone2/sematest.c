@@ -6,6 +6,8 @@
 //           after that, prompt the user to press enter key that exit the program
 
 #include <stdio.h>    //Standard Input/Output library eg. getchar, gets, putchar, puts, sprintf
+#include <stdlib.h>   //General Utilities library eg. atoi, atof, malloc, realloc
+#include <string.h>   //String handling library eg. strcpy, strcat, strcmp
 #include <unistd.h>   //eg. sleep
 #include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
 #include "sema.h"     // using the file sema.c  // the rest of code will be used here
@@ -18,6 +20,12 @@ void *printline(void *string);
 /*** Global variables ***/
 int rt = 0;   // catching error
 
+/*** Structure to store semaphore and string (input) ***/
+struct DataSem {
+  // int mutexState; // 0 for unlock, 1 for lock
+  char *linePtr;
+  Semaphore sem1, sem2, sem3;
+} DataSem; // must put semicolon after this structure
 
 /*
  *  Fucntion: main()
@@ -31,39 +39,53 @@ int main ()
     /*** Local variables ***/
     char charMix[BUFFERSIZE];               // Create an array for maximum 128 characters
     pthread_t t_child;                      // Declare pthread
-    Semaphore sem, *semPtr;
-    semPtr = &sem;
+    struct DataSem data, *dataPtr;
+    dataPtr = &data;
+
+    // semPtr = (Semaphore *) malloc(sizeof(Semaphore *));
+    // semPtr = &sem;
 
     /*** Start: initialiser ***/
-    rt = initialiser(semPtr);
+    rt = initialiser(&dataPtr->sem1);
     if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }           // error message:
-    else { printf("Main: Successfully create initialiser\n");}  // debugger:
+    // else { printf("Main: Successfully create initialiser\n");}  // debugger:
+    rt = initialiser(&dataPtr->sem2);
+    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }           // error message:
+    // else { printf("Main: Successfully create initialiser\n");}  // debugger:
+    rt = initialiser(&dataPtr->sem3);
+    if(rt != 0) { perror("Main: couldn't initailise the initaliser"); }           // error message:
+    // else { printf("Main: Successfully create initialiser\n");}  // debugger:
 
-    semPtr->linePtr = &charMix[0];  //assign ptr to character array
+
+    dataPtr->linePtr = &charMix[0];  //assign ptr to character array
 
     // printf("Main: Initialised semaphore value is: %d\n", semPtr->value);       // debugger: value
-    printf("Main: sem address is: %x\n", (unsigned) semPtr);                      // debugger: address
-    procure(semPtr);                                                              // lock the mutex
+    // printf("Main: sem address is: %x\n", (unsigned) dataPtr->sem1);                      // debugger: address
+    procure(&dataPtr->sem1);  // lock the mutex 1.)
+    procure(&dataPtr->sem3);
     printf("Main: locking the mutex now\n");
 
     /*** Create the child thread ***/
-    rt = pthread_create(&t_child, NULL, printline, (void *) semPtr);              // create child thread
+    rt = pthread_create(&t_child, NULL, printline, (void *) dataPtr);              // create child thread
     if(rt != 0) { perror("Main: Couldn't create a thread!!!"); }                  // error message:
 
-    // sleep(2);
-    printf("Main: printing in the main thread\n");
+    printf("Main: printing in the main thread\n");                                // debugger:
     /*** Read and print line in the parent thread ***/
-    fgets(semPtr->linePtr, BUFFERSIZE, stdin);      // Read the line
+    fgets(dataPtr->linePtr, BUFFERSIZE, stdin);      // Read the line
+    vacate(&dataPtr->sem1);       // notify child thread 4.)
 
-    vacate(semPtr);                                                               // notify semaphore
+    procure(&dataPtr->sem2);
+    printf("Please press enter to exit\n");           // Prompt:
+    while(strcmp(fgets(dataPtr->linePtr, BUFFERSIZE, stdin), "\n")) {
+      printf("Please press enter to exit\n");         // Prompt:
+    }
+    vacate(&dataPtr->sem3);
+    vacate(&dataPtr->sem2);
 
 
-    sleep(3);         // Need to lock it here
 
 
-    procure(semPtr);
-    printf("Main: user has pressed enter\n");
-    vacate(semPtr);
+
 
     /*** Wait the child thread to join ***/
     rt = pthread_join(t_child, NULL);    //  wait to other thread to join
@@ -74,7 +96,7 @@ int main ()
     }
 
     /*** At the End: destructor ***/
-    rt = destructor(semPtr);    //debugger:
+    rt = destructor(&dataPtr->sem1);    //debugger:
     if(rt != 0) { perror("Main: couldn't use destructor"); }               // error message:
     else { printf("Main: Successfully destroy related stuffs\n"); }        // debugger: success
 
@@ -89,19 +111,25 @@ int main ()
  *             type casting back to strcture Semaphore for access its members (value, linePtr, mutex, condition)
  *  Return: NULL
  */
- void *printline (void *sem)
+ void *printline (void *data)
  {
-   procure(sem);
-   Semaphore *sPtr = sem;                                                     // type casting: void * back to correct type of Semaphore (aka struct Semaphore)
-   printf("Child: sPtr address is %x\n", (unsigned int) sPtr);                // debugger: address
-  //  printf("Child: value is %d\n", sPtr->value);                               // debugger: value
-   printf("Child: printing in the child thread\n");
-   printf("%s", sPtr->linePtr);
-   vacate(sem);
+   struct DataSem *dPtr = data;                                                  // type casting: void * back to correct type of Semaphore (aka struct Semaphore)
+   procure(&dPtr->sem2);  // lock the mutex 2.)
 
-   sleep(3);
-   procure(sem);
+  //  printf("Child: sPtr address is %x\n", (unsigned int) &dPtr->sem1);         // debugger: address
+  //  printf("Child: value is %d\n", sPtr->value);                               // debugger: value
+   procure(&dPtr->sem1);    // put in queue sem1 3.)
+   printf("Child: printing in the child thread\n");
+   printf("%s", dPtr->linePtr);
+   vacate(&dPtr->sem2);     // notify main thread
+
+
+   //need to block here
+   procure(&dPtr->sem3);
    printf("Child is exiting...\n");
-   vacate(sem);
+   vacate(&dPtr->sem3);
+
+
+
    return NULL;
  }
