@@ -12,11 +12,12 @@ typedef struct Semaphore
   int value;
   pthread_mutex_t mutex;
   pthread_cond_t condition;
+  char *linePtr;
 } Semaphore;
 
 void procure(Semaphore *semaphore);
 void vacate(Semaphore *semaphore);
-int initialiser();
-int destructor();
+int initialiser(Semaphore *semaphore);
+int destructor(Sempahore *semaphore);
 
 #endif
