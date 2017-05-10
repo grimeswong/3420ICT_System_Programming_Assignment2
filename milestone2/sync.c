@@ -132,7 +132,7 @@ int main() {
 void *printline(void *dataMutexPtr) {
   int rt;
   struct dataMutex *mydataMutex = dataMutexPtr;               // type casting: void * back to correct type of struct
-
+  // sleep(10);      //for testing
   /*** Initialise mutex2 ***/
   rt = pthread_mutex_init(&(mydataMutex)->mutex2, NULL);
   if(rt != 0) {

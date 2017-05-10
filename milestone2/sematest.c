@@ -102,6 +102,7 @@ int main ()
  */
  void *printline (void *data)
  {
+  //  sleep(10);   // for testing
    struct DataSem *dPtr = data;                                                  // type casting: void * back to correct type of Semaphore (aka struct Semaphore)
   //  printf("Child: sPtr address is %x\n", (unsigned int) &dPtr->sem1);         // debugger: address
   //  printf("Child: value is %d\n", sPtr->value);                               // debugger: value
