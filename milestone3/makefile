@@ -9,7 +9,7 @@
 CC = clang			#clang or gcc compiler
 
 # Main Functions
-all: sync sema		#all = "target", default functions of sync & clean
+all: sync sema numgen		#all = "target", default functions of sync & clean
 
 # Print out the "Hello, world"
 sync: sync.c
@@ -18,6 +18,10 @@ sync: sync.c
 # Function of semaphore
 sema: sema.c sematest.c
 	$(CC) -Wall -std=c11 -o bin/sema sema.c sematest.c
+
+# Function for generate uint16 number
+numgen: numgen.c
+	$(CC)	-Wall -std=c11 -o bin/numgen numgen.c
 
 # Clean up the object and executive files
 clean:
