@@ -21,7 +21,7 @@ sema: sema.c sematest.c
 
 # Function for generate uint16 number
 main: numgen.c main.c
-	$(CC)	-Wall -std=c11 -o bin/main numgen.c main.c
+	$(CC) -Wall -std=c11 -o bin/main numgen.c main.c
 
 # Clean up the object and executive files
 clean:
