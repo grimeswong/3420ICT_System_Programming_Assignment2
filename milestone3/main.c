@@ -10,7 +10,7 @@ int main()
 {
 
   constructor();                // constructor (maxBuf, minFill)
-  b.maxBuf = 100;               // 
+  b.maxBuf = 10;               // testing:
 
   numGenerator();               // constructor
 
@@ -25,12 +25,14 @@ int main()
 
 
   /*** testint the elements in the array ***/
-  for (int i=0; i < b.maxBuf; i ++) {
-    // --b.curLevel;
-    // printf("Main: element in numArray[%d] = %u, current level = %d\n",i, *(b.numPtr + i), b.curLevel);  // %u for unsigned short  remember put type conversion first
-    // printf("Main: element in numArray[%d] in hex = %#06hx\n", i, *(b.numPtr +i));
-    // printf("Main: element in numArray[%d] address = %p\n", i, (b.numPtr +i));
+  for (int i=0; i <b.maxBuf; i ++) {
+    printf("Main: element in numArray[%d] = %u, current level = %d\n",i, *(b.numPtr + i), b.curLevel);  // get the value in decimal,  %u for unsigned short  remember put type conversion first
+    printf("Main: element in numArray[%d] in hex = %#06hx\n", i, *(b.numPtr +i));         // get the value in hex
+    printf("Main: element in numArray[%d] address = %p\n", i, &b.numPtr[i]);             // get the address
+
+    printf("Main: get_buffer = %u\n", get_buffer());
   }
+
 
   // printf("Main: b.indexOut is: %d\n", *(b.indexOut));
 
