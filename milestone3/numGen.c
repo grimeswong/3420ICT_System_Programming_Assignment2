@@ -25,8 +25,8 @@ typedef struct Sem {
 uint16_t ranNum ;         // random number
 FILE *filePtr;            // file pointer
 int rt;                   // for error debugging (generic)
-uint16_t reserve[65535];
-uint16_t *oriPtr;
+uint16_t reserve[65535];  // array that store the temp random number for later use
+uint16_t *oriPtr;         // the original position of the pointer which pointer to
 struct Sem sem, *semPtr;
 
 
