@@ -14,7 +14,7 @@
 
 /*** Function prototype ***/
 void numGenerator();                        // For generate uint16 number
-void constructor();  // initalise the values
+void constructor(int minFill, int maxBuf);  // initalise the values
 void destructor();                          // destroy the memory allocation
 void put_buffer();                          // store value of generated number
 uint16_t get_buffer();                          // get the value from the numGenerator
@@ -26,6 +26,7 @@ typedef struct buffer_t {
   int curLevel;     // store the current buffer status
   int indexIn;     // record the index of last in (Testing)
   int indexOut;    // record the index of last out (Testing)
+  uint16_t array[66535];
   uint16_t *numPtr; // pointer point to the array of uint16 number
 } buffer;
 

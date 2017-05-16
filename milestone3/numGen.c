@@ -15,8 +15,7 @@
 
 #include "numGen.h"   //customised header file
 
-#define DEFAULT_MINFILL 0
-#define DEFAULT_MAXBUFFER 5
+
 
 /*** Global variable ***/
 uint16_t ranNum ;         // random number
@@ -68,17 +67,18 @@ uint16_t *oriPtr;
   *  Parameters:  int maxium buffer size (default = 5), int minimum fill (default = 0)
   *  Return: None
   */
- void constructor() {
-   b.minFill = DEFAULT_MINFILL;   // default value = 0
-   b.maxBuf = DEFAULT_MAXBUFFER;    // default value = 5
+ void constructor(minFill, maxBuf) {
+   b.minFill = minFill;   // default value = 0
+   b.maxBuf = maxBuf;    // default value = 5
    b.curLevel = 0;  // default value = 0
-   b.numPtr = calloc(b.maxBuf, sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates space for an array element, initalizes to zero and then retuuns a pointer to memeory)
+
+  //  b.numPtr = calloc(b.maxBuf, sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates space for an array element, initalizes to zero and then retuuns a pointer to memeory)
   //  b.numPtr = malloc(maxBuf * sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates requested size of bytes and returns a pointer first byte of allocated space)
 
    oriPtr = &b.numPtr[0];
-   printf("constructor: &b.numPtr[0] address is %p\n", &b.numPtr[0]);
+   printf("constructor: &b.numPtr[0] (original) address is %p\n", &b.numPtr[0]);
 
-   printf("constructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));          // 8 bytes for the b.numPtr
+  //  printf("constructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));          // 8 bytes for the b.numPtr
    printf("constructor: minfill : %d\n", b.minFill);                             // debugger: minimum fill
    printf("constructor: maxBuf : %d\n", b.maxBuf);                               // debugger: maximum buffer
    printf("constructor: curLevel = %d\n", b.curLevel);                          // debugger: current level
@@ -106,7 +106,7 @@ uint16_t *oriPtr;
    //  else {("Successfully free the pointer memory\n"); }
    printf("destructor: minfill : %d\n", b.minFill);
    printf("destructor: maxBuf : %d\n", b.maxBuf);
-   printf("destructor: curLevel :%d\n", b.curLevel);
+   printf("destructor: curLevel : %d\n", b.curLevel);
  }
 
 
@@ -119,10 +119,16 @@ uint16_t *oriPtr;
   void put_buffer() {
     int i;
     for(i=0; b.curLevel<b.maxBuf; i++) {
-      b.numPtr[b.indexIn] = reserve[i];
-      printf("put_buffer: b.numPtr[b.indexIn] value is %u\n", (b.numPtr[b.indexIn]));
+      b.array[b.indexIn] = reserve[i];
+      printf("put_buffer: b.array[b.indexIn = %d] value is %u    ",  b.indexIn, b.array[b.indexIn]); // debugger:
+      printf("put_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
+      printf("put_buffer: b.indexOut is %d", b.indexIn); // debugger:
+      printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
+
       b.indexIn++;
-      if(b.indexIn == b.maxBuf) {b.indexIn = 0;}  // reset to the beginning of an array
+      if(b.indexIn == b.maxBuf) {
+        b.indexIn = 0;  // reset to the beginning of an array
+      }
       b.curLevel++;
     }
     // printf("put_buffer: b.indexIn value is: %d\n", *(b.indexIn));   // get the value for the pointer
@@ -137,13 +143,15 @@ uint16_t *oriPtr;
   */
 
   uint16_t get_buffer() {                          // get the value from the numGenerator
-    ranNum = *b.numPtr;                            // get the pointer current value (old position)
-
+    ranNum = b.array[b.indexOut];                            //
+    b.array[b.indexOut] = 0;                       // clean up the value
+    printf("put_buffer: b.array[b.indexOut = %d] value is %u    ",  b.indexOut, b.array[b.indexOut]); // debugger:
+    printf("get_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
+    printf("get_buffer: b.indexOut is %d\n", b.indexOut); // debugger:
+    printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
     b.indexOut++;
-    b.numPtr++;
     if(b.indexOut == b.maxBuf) {
       b.indexOut = 0;                             // reset to the begining of an array
-      b.numPtr = oriPtr;                          // reset to the begining of an array
     }
     b.curLevel--;
     return ranNum;
