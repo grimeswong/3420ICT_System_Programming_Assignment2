@@ -26,7 +26,8 @@ uint16_t ranNum ;         // random number
 FILE *filePtr;            // file pointer
 int rt;                   // for error debugging (generic)
 uint16_t reserve[65535];  // array that store the temp random number for later use
-uint16_t *oriPtr;         // the original position of the pointer which pointer to
+uint16_t *reservePtr;
+uint16_t *oriPtr;         // the original position of the pointer which point to
 struct Sem sem, *semPtr;
 
 
@@ -50,7 +51,7 @@ struct Sem sem, *semPtr;
    int fd = open("/dev/random", O_RDONLY);                                      //use file desciptor, stream to get random number
    if (fd != -1) {
     //  printf("Successfully create file desciptor\n");                        // debugger: Successfully message
-     while(counter < 10) {   //set it back to 65535                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
+     while(counter < 65533) {   //set it back to 65533                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
        read(fd, ranPtr, sizeof(ranPtr));
       //  printf("numGenerator: Random number is = %d, counter = %d\n", *ranPtr, counter);        // debugger: get the value of the pointer
       //  printf("numGenerator: reserve[%d] is = %d, counter = %d\n", counter, reserve[counter], counter);
@@ -75,6 +76,7 @@ struct Sem sem, *semPtr;
    b.numPtr = calloc(b.maxBuf, sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates space for an array element, initalizes to zero and then retuuns a pointer to memeory)
   //  b.numPtr = malloc(maxBuf * sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates requested size of bytes and returns a pointer first byte of allocated space)
    oriPtr = &b.numPtr[0];
+   reservePtr = reserve;  // equal = &reserve[0]
    printf("numConstructor: &b.numPtr[0] (original) address is %p\n", &b.numPtr[0]);
 
    semPtr = &sem; // assign semaphore pointer
@@ -114,19 +116,23 @@ struct Sem sem, *semPtr;
   *  Return: None
   */
   void put_buffer() {
-    for(int i=0; b.curLevel<b.maxBuf; i++) {
-      b.numPtr[b.indexIn] = reserve[i];
-      printf("put_buffer: b.numPtr[b.indexIn = %d] value is %u    ",  b.indexIn, b.numPtr[b.indexIn]); // debugger:
+    // for(int i=0; b.curLevel<b.maxBuf; i++) {   // can be deleted
+    while(b.curLevel < b.maxBuf) {
+      b.numPtr[b.indexIn] = *reservePtr;
+      printf("put_buffer: b.numPtr[b.indexIn = %d] value is %d    ",  b.indexIn, b.numPtr[b.indexIn]); // debugger:
       printf("put_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
-      printf("put_buffer: b.indexOut is %d", b.indexIn); // debugger:
+      printf("put_buffer: b.indexOut is %d    ", b.indexOut); // debugger:
       printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
-
+      reservePtr++;
       b.indexIn++;
-      if(b.indexIn == b.maxBuf) {
+      if(b.indexIn == b.maxBuf) { // if indexIn reach maximum buffer index, reset
         b.indexIn = 0;  // reset to the beginning of an array
       }
       b.curLevel++;
     }
+    printf("put_buffer: minfill : %d\n", b.minFill);          // debugger:
+    printf("put_buffer: maxBuf : %d\n", b.maxBuf);            // debugger:
+    printf("put_buffer: curLevel : %d\n", b.curLevel);        // debugger:
   }
 
  /*
@@ -138,8 +144,8 @@ struct Sem sem, *semPtr;
 
   uint16_t get_buffer() {                          // get the value from the numGenerator
     ranNum = b.numPtr[b.indexOut];                            //
+    // printf("get_buffer: b.numPtr[b.indexOut = %d] value is %d    ",  b.indexOut, b.numPtr[b.indexOut]); // debugger:
     b.numPtr[b.indexOut] = 0;                       // clean up the value
-    printf("get_buffer: b.numPtr[b.indexOut = %d] value is %u    ",  b.indexOut, b.numPtr[b.indexOut]); // debugger:
     printf("get_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
     printf("get_buffer: b.indexOut is %d   ", b.indexOut); // debugger:
     printf("get_buffer: b.curLevel is %d\n", b.curLevel); // debugger:

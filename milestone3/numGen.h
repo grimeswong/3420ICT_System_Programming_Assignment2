@@ -26,7 +26,7 @@ typedef struct buffer_t {
   uint16_t *numPtr; // pointer point to the array of uint16 number
 } buffer;
 
-// /*** Global variable ***/
+/*** Global variable ***/
 buffer b;           // buffer structure
 
 #endif

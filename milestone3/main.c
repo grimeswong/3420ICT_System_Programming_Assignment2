@@ -23,6 +23,9 @@ int main()
   printf("Main: get_buffer() = %u\n", get_buffer());
   printf("Main: get_buffer() = %u\n", get_buffer());
   printf("Main: get_buffer() = %u\n", get_buffer());
+  printf("Main: indexIn : %d\n", b.indexIn);          // debugger:
+  printf("Main: indexOut : %d\n", b.indexOut);            // debugger:
+  printf("Main: curLevel : %d\n", b.curLevel);        // debugger:
   /*** end testing get_buffer ***/
 
   /*** testing the member of the array ***/
@@ -42,6 +45,9 @@ int main()
   printf("Main: get_buffer() = %u\n", get_buffer());
   printf("Main: get_buffer() = %u\n", get_buffer());
   printf("Main: get_buffer() = %u\n", get_buffer());
+  printf("Main: indexIn : %d\n", b.indexIn);          // debugger:
+  printf("Main: indexOut : %d\n", b.indexOut);        // debugger:
+  printf("Main: curLevel : %d\n", b.curLevel);        // debugger:
 
   /*** testing the member of the array ***/
   for(int i=0; i<b.maxBuf; i++) {
@@ -49,10 +55,25 @@ int main()
   }
   /*** end testing the member of the array ***/
 
-  /*** note onlo ***/
+  printf("Main: get_buffer() = %u\n", get_buffer());
+  printf("Main: get_buffer() = %u\n", get_buffer());
+  printf("Main: get_buffer() = %u\n", get_buffer());
+  printf("Main: indexIn : %d\n", b.indexIn);          // debugger:
+  printf("Main: indexOut : %d\n", b.indexOut);        // debugger:
+  printf("Main: curLevel : %d\n", b.curLevel);        // debugger:
+
+  /*** testing the member of the array ***/
+  for(int i=0; i<b.maxBuf; i++) {
+    printf("Main: b.numPtr[%d] is %d, hex = %#06hx, address = %p\n", i, b.numPtr[i], b.numPtr[i], &b.numPtr[i]);
+  }
+  /*** end testing the member of the array ***/
+
+
+  /*** note only ***/
   // printf("65261 in hex is 0x%04x\n", 65261);    // note: format of hex
   // printf("65261 in hex is %#06x\n", 65261);     // note: format of hex
   /*** end of note ***/
+
 
 
   numDestructor();       // destroy all the memory allocation
