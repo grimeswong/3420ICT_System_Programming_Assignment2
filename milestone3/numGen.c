@@ -14,7 +14,11 @@
 #include <stdint.h>   //For using uint16_t
 
 #include "numGen.h"   //customised header file
+#include "sema.h"     //Customised semaphore
 
+typedef struct Sem {
+  Semaphore numSem1, numSem2;
+} Sem_t; // must put semicolon after this structure
 
 
 /*** Global variable ***/
@@ -23,6 +27,8 @@ FILE *filePtr;            // file pointer
 int rt;                   // for error debugging (generic)
 uint16_t reserve[65535];
 uint16_t *oriPtr;
+struct Sem sem, *semPtr;
+
 
 /*** Main function for testing only ***/
 // int main()
@@ -37,11 +43,6 @@ uint16_t *oriPtr;
  *  Parameter: None
  *  Return: random unsigned integer numbers
  */
-
-
- /*** Store in static array ??? ***/
-
-
  void numGenerator() {
    int counter = 0;
    uint16_t *ranPtr = 0;
@@ -62,37 +63,35 @@ uint16_t *oriPtr;
 
 
  /*
-  *  Function: constructor
+  *  Function: numConstructor
   *  Description: initialise the structure of buffer
   *  Parameters:  int maxium buffer size (default = 5), int minimum fill (default = 0)
   *  Return: None
   */
- void constructor(minFill, maxBuf) {
+ void numConstructor(minFill, maxBuf) {
    b.minFill = minFill;   // default value = 0
    b.maxBuf = maxBuf;    // default value = 5
    b.curLevel = 0;  // default value = 0
-
-  //  b.numPtr = calloc(b.maxBuf, sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates space for an array element, initalizes to zero and then retuuns a pointer to memeory)
+   b.numPtr = calloc(b.maxBuf, sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates space for an array element, initalizes to zero and then retuuns a pointer to memeory)
   //  b.numPtr = malloc(maxBuf * sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates requested size of bytes and returns a pointer first byte of allocated space)
-
    oriPtr = &b.numPtr[0];
-   printf("constructor: &b.numPtr[0] (original) address is %p\n", &b.numPtr[0]);
+   printf("numConstructor: &b.numPtr[0] (original) address is %p\n", &b.numPtr[0]);
 
-  //  printf("constructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));          // 8 bytes for the b.numPtr
-   printf("constructor: minfill : %d\n", b.minFill);                             // debugger: minimum fill
-   printf("constructor: maxBuf : %d\n", b.maxBuf);                               // debugger: maximum buffer
-   printf("constructor: curLevel = %d\n", b.curLevel);                          // debugger: current level
-
+   semPtr = &sem; // assign semaphore pointer
+  //  printf("numConstructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));          // 8 bytes for the b.numPtr
+   printf("numConstructor: minfill : %d\n", b.minFill);                             // debugger: minimum fill
+   printf("numConstructor: maxBuf : %d\n", b.maxBuf);                               // debugger: maximum buffer
+   printf("numConstructor: curLevel = %d\n", b.curLevel);                          // debugger: current level
  }
 
 
  /*
-  *  Function: destructor
+  *  Function: numDestructor
   *  Description: clean up the memory allocation, (mutex, semaphore if applicated)
   *  Parameter:  None
   *  Return: None
   */
- void destructor() {
+ void numDestructor() {
 
    /*** clean up the array (set value to 0) ***/
   //  for(int i=0; i < b.maxBuf; i++) {
@@ -100,13 +99,11 @@ uint16_t *oriPtr;
   //  }
    /*** end clean up ***/
 
-   b.numPtr = oriPtr; // the pointer back to the original positiion that pointing to
+   b.numPtr = oriPtr; // the pointer point back to the original position
    free(b.numPtr);    // free the allocated memory
-   //  if (rt != 0) {perror("Couldn't free the memory\n");}   // error message: memory allocation
-   //  else {("Successfully free the pointer memory\n"); }
-   printf("destructor: minfill : %d\n", b.minFill);
-   printf("destructor: maxBuf : %d\n", b.maxBuf);
-   printf("destructor: curLevel : %d\n", b.curLevel);
+   printf("numDestructor: minfill : %d\n", b.minFill);          // debugger:
+   printf("numDestructor: maxBuf : %d\n", b.maxBuf);            // debugger:
+   printf("numDestructor: curLevel : %d\n", b.curLevel);        // debugger:
  }
 
 
@@ -117,10 +114,9 @@ uint16_t *oriPtr;
   *  Return: None
   */
   void put_buffer() {
-    int i;
-    for(i=0; b.curLevel<b.maxBuf; i++) {
-      b.array[b.indexIn] = reserve[i];
-      printf("put_buffer: b.array[b.indexIn = %d] value is %u    ",  b.indexIn, b.array[b.indexIn]); // debugger:
+    for(int i=0; b.curLevel<b.maxBuf; i++) {
+      b.numPtr[b.indexIn] = reserve[i];
+      printf("put_buffer: b.numPtr[b.indexIn = %d] value is %u    ",  b.indexIn, b.numPtr[b.indexIn]); // debugger:
       printf("put_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
       printf("put_buffer: b.indexOut is %d", b.indexIn); // debugger:
       printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
@@ -131,8 +127,6 @@ uint16_t *oriPtr;
       }
       b.curLevel++;
     }
-    // printf("put_buffer: b.indexIn value is: %d\n", *(b.indexIn));   // get the value for the pointer
-    // printf("put_buffer: b.indexIn address is :%p\n", b.indexIn);    // get the address for the pointer
   }
 
  /*
@@ -143,12 +137,12 @@ uint16_t *oriPtr;
   */
 
   uint16_t get_buffer() {                          // get the value from the numGenerator
-    ranNum = b.array[b.indexOut];                            //
-    b.array[b.indexOut] = 0;                       // clean up the value
-    printf("put_buffer: b.array[b.indexOut = %d] value is %u    ",  b.indexOut, b.array[b.indexOut]); // debugger:
+    ranNum = b.numPtr[b.indexOut];                            //
+    b.numPtr[b.indexOut] = 0;                       // clean up the value
+    printf("get_buffer: b.numPtr[b.indexOut = %d] value is %u    ",  b.indexOut, b.numPtr[b.indexOut]); // debugger:
     printf("get_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
-    printf("get_buffer: b.indexOut is %d\n", b.indexOut); // debugger:
-    printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
+    printf("get_buffer: b.indexOut is %d   ", b.indexOut); // debugger:
+    printf("get_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
     b.indexOut++;
     if(b.indexOut == b.maxBuf) {
       b.indexOut = 0;                             // reset to the begining of an array

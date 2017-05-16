@@ -8,7 +8,7 @@
 #include <stdio.h>    //Standard Input/Output library eg. getchar, gets, putchar, puts, sprintf
 // #include <stdlib.h>   //General Utilities library eg. atoi, atof, malloc, realloc
 #include <unistd.h>   //eg. sleep
-#include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
+// #include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
 #include "sema.h"
 
 /*** Function declartion (Prototype) ***/

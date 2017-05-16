@@ -7,6 +7,8 @@
 #ifndef _sema_h
 #define _sema_h
 
+#include <pthread.h>  //eg. pthread_create, pthread_join, pthread_exit
+
 typedef struct Semaphore
 {
   int value;

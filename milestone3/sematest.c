@@ -57,6 +57,8 @@ int main ()
     // printf("Main: sem address is: %x\n", (unsigned) dataPtr->sem1);            // debugger: address
     // printf("Main: locking the mutex now\n");                                      //debugger:
 
+    procure(&dataPtr->sem1);       // notify child thread:   sem1: 1 to 0
+
     /*** Create the child thread ***/
     rt = pthread_create(&t_child, NULL, printline, (void *) dataPtr);              // create child thread
     if(rt != 0) { perror("Main: Couldn't create a thread!!!"); }                  // error message:
@@ -64,10 +66,10 @@ int main ()
     // printf("Main: printing in the main thread\n");                                // debugger:
 
     /*** Read and print line in the parent thread ***/
-    fgets(dataPtr->linePtr, BUFFERSIZE, stdin);      // Read the line
-    vacate(&dataPtr->sem1);       // notify child thread:   sem1: -1 to 0
+    fgets(dataPtr->linePtr, BUFFERSIZE, stdin);       // Read the line
+    vacate(&dataPtr->sem1);                           // notify child thread:   sem1: -1 to 0
 
-    procure(&dataPtr->sem2);      // sem2: -1
+    procure(&dataPtr->sem2);                          // sem2: -1 // wait for signal from child thread
     printf("Please press enter to exit\n");           // Prompt:
     while(strcmp(fgets(dataPtr->linePtr, BUFFERSIZE, stdin), "\n")) {
       printf("Please press enter to exit\n");         // Prompt:
@@ -106,13 +108,14 @@ int main ()
    struct DataSem *dPtr = data;                                                  // type casting: void * back to correct type of Semaphore (aka struct Semaphore)
   //  printf("Child: sPtr address is %x\n", (unsigned int) &dPtr->sem1);         // debugger: address
   //  printf("Child: value is %d\n", sPtr->value);                               // debugger: value
+   procure(&dPtr->sem2);                                  // lock sem2           //sem2 1 to 0
    procure(&dPtr->sem1);                                  // sem1 -1
   //  printf("Child: printing in the child thread\n");                              // debugger: message
    printf("%s", dPtr->linePtr);
 
-   vacate(&dPtr->sem2);     // notify main thread        // notify main thread sem2 -1 to 0
+   vacate(&dPtr->sem2);     // notify main thread        // notify main thread sem2 0 to 1
 
-   procure(&dPtr->sem1);    // -1
+   procure(&dPtr->sem1);    // wait to main thread signal // -1
   //  sleep(3);                                                                    // debugger:
    printf("Child is exiting...\n");
 
