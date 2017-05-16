@@ -48,12 +48,12 @@ uint16_t reserve[65535];
    ranPtr = &reserve[counter];
    int fd = open("/dev/random", O_RDONLY);                                      //use file desciptor, stream to get random number
    if (fd != -1) {
-    printf("Successfully create file desciptor\n");
-    read(fd, ranPtr, sizeof(ranPtr));
-    counter++;
-     while(counter < 100) {                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
+     printf("Successfully create file desciptor\n");                        // debugger: Successfully message
+
+     while(counter < 65535) {                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
        read(fd, ranPtr, sizeof(ranPtr));
-       printf("numGenerator: Random number is = %d\n", reserve[counter]);
+      //  printf("numGenerator: Random number is = %d, counter = %d\n", *ranPtr, counter);        // debugger: get the value of the pointer
+      //  printf("numGenerator: reserve[%d] is = %d, counter = %d\n", counter, reserve[counter], counter);
        counter++;
        ranPtr++;
       }
@@ -100,8 +100,8 @@ uint16_t reserve[65535];
    free(b.numPtr);    // free the allocated memory
    //  if (rt != 0) {perror("Couldn't free the memory\n");}   // error message: memory allocation
    //  else {("Successfully free the pointer memory\n"); }
-   printf("destructor: minfill :%d\n", b.minFill);
-   printf("destructor: maxBuf :%d\n", b.maxBuf);
+   printf("destructor: minfill : %d\n", b.minFill);
+   printf("destructor: maxBuf : %d\n", b.maxBuf);
    printf("destructor: curLevel :%d\n", b.curLevel);
  }
 

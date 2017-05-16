@@ -32,7 +32,7 @@ int initialiser(Semaphore *semaphore)
   // printf("Initialiser: semaphore address: %x\n", (unsigned int) semaphore);               // debugger: address
 
   /*** Initialize semaphore value ***/
-  semaphore->value = 0;    // 1 binary(critical section), 0 for synchroniztion
+  semaphore->value = 1;    // 1 binary(critical section), 0 for synchroniztion
   // printf("sem->value is %d\n", semPtr->value);                                           //debugger: value
 
   /*** Initialize mutex ***/
@@ -106,7 +106,7 @@ void procure(Semaphore *semaphore)
 void vacate(Semaphore *semaphore)
 {
   // printf("vacate: pre value is: %d\n", semaphore->value);                      //debugger:
-  // pthread_mutex_lock(&semaphore->mutex);
+  pthread_mutex_lock(&semaphore->mutex);
   semaphore->value++;
   pthread_cond_signal(&semaphore->condition);
   pthread_mutex_unlock(&semaphore->mutex);

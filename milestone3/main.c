@@ -10,9 +10,9 @@ int main()
 {
 
   constructor();                // constructor (maxBuf, minFill)
-  b.maxBuf = 100;
+  b.maxBuf = 100;               // 
 
-  numGenerator();
+  numGenerator();               // constructor
 
   put_buffer();
 
