@@ -12,8 +12,7 @@ int main()
   constructor();                // constructor (maxBuf, minFill)
   b.maxBuf = 100;
 
-  uint16_t printNum = numGenerator();   // function in numGen.c
-  printf("Main: Random number is %d\n", printNum);
+  numGenerator();
 
   put_buffer();
 
@@ -27,10 +26,10 @@ int main()
 
   /*** testint the elements in the array ***/
   for (int i=0; i < b.maxBuf; i ++) {
-    --b.curLevel;
-    printf("Main: element in numArray[%d] = %u, current level = %d\n",i, *(b.numPtr + i), b.curLevel);  // %u for unsigned short  remember put type conversion first
-    printf("Main: element in numArray[%d] in hex = %#06hx\n", i, *(b.numPtr +i));
-    printf("Main: element in numArray[%d] address = %p\n", i, (b.numPtr +i));
+    // --b.curLevel;
+    // printf("Main: element in numArray[%d] = %u, current level = %d\n",i, *(b.numPtr + i), b.curLevel);  // %u for unsigned short  remember put type conversion first
+    // printf("Main: element in numArray[%d] in hex = %#06hx\n", i, *(b.numPtr +i));
+    // printf("Main: element in numArray[%d] address = %p\n", i, (b.numPtr +i));
   }
 
   // printf("Main: b.indexOut is: %d\n", *(b.indexOut));

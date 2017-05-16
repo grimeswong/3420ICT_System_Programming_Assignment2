@@ -11,9 +11,18 @@
 #include <string.h>   //String handling library eg. strcpy, strcat, strcmp
 #include <errno.h>    //Error number handling library eg. errno
 #include <fcntl.h>    //Access file, file permission, eg. O_CREAT, O_RDONLY, O_WRONLY,
-#include <stdint.h>
+#include <stdint.h>   //For using uint16_t
 
-#include "numGen.h"
+#include "numGen.h"   //customised header file
+
+#define DEFAULT_MINFILL 0
+#define DEFAULT_MAXBUFFER 5
+
+/*** Global variable ***/
+uint16_t ranNum ;         // random number
+FILE *filePtr;            // file pointer
+int rt;                   // for error debugging (generic)
+uint16_t reserve[65535];
 
 /*** Main function for testing only ***/
 // int main()
@@ -22,7 +31,6 @@
 //
 //   return 0;
 // }
-
 
 /*  Function: numGenerator();
  *  Description: Generate the unsigned integer number by the /dev/random
@@ -34,20 +42,23 @@
  /*** Store in static array ??? ***/
 
 
- uint16_t numGenerator() {
+ void numGenerator() {
+   int counter = 0;
+   uint16_t *ranPtr = 0;
+   ranPtr = &reserve[counter];
    int fd = open("/dev/random", O_RDONLY);                                      //use file desciptor, stream to get random number
    if (fd != -1) {
-     read(fd, &ranNum, sizeof(ranNum));
-     while(b.curLevel < b.maxBuf) {                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
-      //  printf("numGenerator: Random number is = %d\n", ranNum);                            // debugger: print number generated
-       read(fd, &ranNum, sizeof(ranNum));
-       b.curLevel++;
-      //  printf("numGenerator: current level: %d\n", b.curLevel);                 // debugger: curLevel
+    printf("Successfully create file desciptor\n");
+    read(fd, ranPtr, sizeof(ranPtr));
+    counter++;
+     while(counter < 100) {                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
+       read(fd, ranPtr, sizeof(ranPtr));
+       printf("numGenerator: Random number is = %d\n", reserve[counter]);
+       counter++;
+       ranPtr++;
       }
      close(fd);
    } else { perror("Could not open file to get random number"); }           // error message
-
-   return ranNum;
  }
 
 
@@ -65,8 +76,8 @@
   //  b.numPtr = malloc(maxBuf * sizeof(uint16_t));    // assign the memory by the maximum buffer (Allocates requested size of bytes and returns a pointer first byte of allocated space)
 
    printf("constructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));          // 8 bytes for the b.numPtr
-   printf("constructor: minfill :%d\n", b.minFill);                             // debugger: minimum fill
-   printf("constructor: maxBuf :%d\n", b.maxBuf);                               // debugger: maximum buffer
+   printf("constructor: minfill : %d\n", b.minFill);                             // debugger: minimum fill
+   printf("constructor: maxBuf : %d\n", b.maxBuf);                               // debugger: maximum buffer
    printf("constructor: curLevel = %d\n", b.curLevel);                          // debugger: current level
 
  }
@@ -104,10 +115,10 @@
   void put_buffer() {
     int i = 0;
     for(i=0; i<b.maxBuf; i++) {
-      b.numPtr[i] = numGenerator();
+      b.numPtr[i] = reserve[i];
+      b.curLevel++;
     }
     b.indexOut = &b.numPtr[i-1];
-    printf("put_buffer: b.numPtr value is: %d\n", *(b.indexOut));   // get the value for the pointer
-    printf("put_buffer: b.numPtr address is :%p\n", b.indexOut);    // get the address for the pointer
-
+    printf("put_buffer: b.indexOut value is: %d\n", *(b.indexOut));   // get the value for the pointer
+    printf("put_buffer: b.indexOut address is :%p\n", b.indexOut);    // get the address for the pointer
   }

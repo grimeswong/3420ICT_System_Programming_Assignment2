@@ -10,11 +10,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define DEFAULT_MINFILL 0
-#define DEFAULT_MAXBUFFER 5
+
 
 /*** Function prototype ***/
-uint16_t numGenerator();                    // For generate uint16 number
+void numGenerator();                        // For generate uint16 number
 void constructor();  // initalise the values
 void destructor();                          // destroy the memory allocation
 void put_buffer();                          // store value of generated number
@@ -29,11 +28,7 @@ typedef struct buffer_t {
   uint16_t *numPtr; // pointer point to the array of uint16 number
 } buffer;
 
-/*** Global variable ***/
-uint16_t ranNum ;   // random number
-FILE *filePtr;      // file pointer
+// /*** Global variable ***/
 buffer b;           // buffer structure
-int rt;             // for error debugging (generic)
-int fd;             // for error debugging (file descriptor)
 
 #endif
