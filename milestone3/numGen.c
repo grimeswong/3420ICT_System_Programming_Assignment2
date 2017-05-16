@@ -28,7 +28,8 @@ int rt;                   // for error debugging (generic)
 uint16_t reserve[65535];  // array that store the temp random number for later use
 uint16_t *reservePtr;
 uint16_t *oriPtr;         // the original position of the pointer which point to
-struct Sem sem, *semPtr;
+
+Sem_t sem, *semPtr;       // Semaphore
 
 
 /*** Main function for testing only ***/
@@ -84,6 +85,7 @@ struct Sem sem, *semPtr;
    printf("numConstructor: minfill : %d\n", b.minFill);                             // debugger: minimum fill
    printf("numConstructor: maxBuf : %d\n", b.maxBuf);                               // debugger: maximum buffer
    printf("numConstructor: curLevel = %d\n", b.curLevel);                          // debugger: current level
+   initialiser(&sem.numSem1);
  }
 
 
@@ -116,23 +118,26 @@ struct Sem sem, *semPtr;
   *  Return: None
   */
   void put_buffer() {
-    // for(int i=0; b.curLevel<b.maxBuf; i++) {   // can be deleted
+
     while(b.curLevel < b.maxBuf) {
+      procure(&semPtr->numSem1);
       b.numPtr[b.indexIn] = *reservePtr;
-      printf("put_buffer: b.numPtr[b.indexIn = %d] value is %d    ",  b.indexIn, b.numPtr[b.indexIn]); // debugger:
-      printf("put_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
-      printf("put_buffer: b.indexOut is %d    ", b.indexOut); // debugger:
-      printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
+      // printf("put_buffer: b.numPtr[b.indexIn = %d] value is %d    ",  b.indexIn, b.numPtr[b.indexIn]); // debugger:
+      // printf("put_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
+      // printf("put_buffer: b.indexOut is %d    ", b.indexOut); // debugger:
+      // printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
       reservePtr++;
       b.indexIn++;
       if(b.indexIn == b.maxBuf) { // if indexIn reach maximum buffer index, reset
         b.indexIn = 0;  // reset to the beginning of an array
       }
       b.curLevel++;
+      vacate(&sem.numSem1);
     }
-    printf("put_buffer: minfill : %d\n", b.minFill);          // debugger:
-    printf("put_buffer: maxBuf : %d\n", b.maxBuf);            // debugger:
-    printf("put_buffer: curLevel : %d\n", b.curLevel);        // debugger:
+
+    // printf("put_buffer: minfill : %d\n", b.minFill);          // debugger:
+    // printf("put_buffer: maxBuf : %d\n", b.maxBuf);            // debugger:
+    // printf("put_buffer: curLevel : %d\n", b.curLevel);        // debugger:
   }
 
  /*
@@ -143,16 +148,20 @@ struct Sem sem, *semPtr;
   */
 
   uint16_t get_buffer() {                          // get the value from the numGenerator
-    ranNum = b.numPtr[b.indexOut];                            //
-    // printf("get_buffer: b.numPtr[b.indexOut = %d] value is %d    ",  b.indexOut, b.numPtr[b.indexOut]); // debugger:
-    b.numPtr[b.indexOut] = 0;                       // clean up the value
-    printf("get_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
-    printf("get_buffer: b.indexOut is %d   ", b.indexOut); // debugger:
-    printf("get_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
-    b.indexOut++;
-    if(b.indexOut == b.maxBuf) {
-      b.indexOut = 0;                             // reset to the begining of an array
-    }
+    while (b.minFill < b.curLevel ) {
+      procure(&semPtr->numSem1);
+      ranNum = b.numPtr[b.indexOut];                            //
+      // printf("get_buffer: b.numPtr[b.indexOut = %d] value is %d    ",  b.indexOut, b.numPtr[b.indexOut]); // debugger:
+      b.numPtr[b.indexOut] = 0;                       // clean up the value
+      // printf("get_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
+      // printf("get_buffer: b.indexOut is %d   ", b.indexOut); // debugger:
+      // printf("get_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
+      b.indexOut++;
+      if(b.indexOut == b.maxBuf) {
+        b.indexOut = 0;                             // reset to the begining of an array
+      }
     b.curLevel--;
+      vacate(&sem.numSem1);
+    }
     return ranNum;
   }
