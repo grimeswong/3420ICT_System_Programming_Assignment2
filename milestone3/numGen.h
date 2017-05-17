@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "sema.h"
 
 /*** Function prototype ***/
 void numGenerator();                        // For generate uint16 number
@@ -26,7 +27,13 @@ typedef struct buffer_t {
   uint16_t *numPtr; // pointer point to the array of uint16 number
 } buffer;
 
+typedef struct numSem {
+  Semaphore numMain, numDelay;
+} numSem_t; // must put semicolon after this structure
+
+
 /*** Global variable ***/
 buffer b;           // buffer structure
+numSem_t sem, *semPtr;       // Semaphore
 
 #endif

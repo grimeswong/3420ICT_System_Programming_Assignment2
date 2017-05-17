@@ -78,11 +78,9 @@ int destructor(Semaphore *semaphore)
  */
 void procure(Semaphore *semaphore)
 {
-  // printf("procure: sem address is %x\n", (unsigned int) semaphore);             // debugger: address
   rt = pthread_mutex_lock (&semaphore->mutex);
-  if (rt != 0) { printf("procure: Can't not get the lock\n"); }
+  if (rt != 0) { printf("procure: Cannot get the lock\n"); }                   //error message:
   // else { printf("procure: get the lock\n"); }                                      // debugger: success
-  // printf("procure: sem address is %x\n", (unsigned int) semaphore);             // debugger: address
   // printf("procure: locking\n");                                                    //debugger:
   // printf("procure: pre value is: %d\n", semaphore->value);
 
@@ -91,8 +89,8 @@ void procure(Semaphore *semaphore)
     pthread_cond_wait(&semaphore->condition, &semaphore->mutex);
   }
   semaphore->value--;
-
   rt = pthread_mutex_unlock(&semaphore->mutex);
+  if (rt != 0) { printf("procure: Cannot unlock mutex\n"); }                   //error message: 
   // printf("procure: post value is: %d\n", semaphore->value);                    //debugger:
 
 }
