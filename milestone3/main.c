@@ -42,7 +42,8 @@ int main()
   rt = pthread_create(&consumerT, NULL, consumer, (void *) semPtr);              // create consumer thread
   if(rt != 0) { perror("Main: Couldn't create the consumer thread!!!"); }                  // error message:
 
-  // while loop here for waiting user input a number for print out how many numbers
+
+  /*** while loop here for waiting user input a number for print out how many numbers ***/
   char readLine[31];
   char *linePtr = fgets(readLine, 30, stdin);
   if(strcmp(linePtr, "exit\n") == 0) {
@@ -52,13 +53,14 @@ int main()
     printNum = atoi(linePtr);
     printf("Number of print is : %d\n", printNum);
     linePtr = fgets(readLine, 30, stdin);
+    if(strcmp(linePtr, "exit\n") == 0) {
+      exit(EXIT_SUCCESS);
+    }
   }
 
 
 
-
-
-
+  /*** Shouldn't use pthread_join this time ***/
   /*** Wait the child thread to join ***/
   // rt = pthread_join(producerT, NULL);    //  wait to other thread to join
   // if (rt != 0) {
@@ -83,21 +85,24 @@ int main()
  *  Return: None
  */
 void *producer(void *arg) {
-  numGenerator();               // numConstructor
+  numGenerator();                    // generate number and store in reserve
+  vacate(&semPtr->numEmpty);         // 0 to 1
+
   while(1) {
-    procure(&semPtr->numMain);
-    if (b.curLevel < b.maxBuf) {     // if current level reach the maximum buffer, signal consumer
+    // printf("producer: after while(1)\n");
+    procure(&semPtr->numEmpty);      // lock empty
+    procure(&semPtr->numMain);       // lock critical section
+    while (b.curLevel < b.maxBuf) {     // if current level reach the maximum buffer, signal consumer
+      printf("producer: put_buffer = refill\n");
       put_buffer();
-    } else {
-      vacate(&semPtr->numDelay);
     }
-    vacate(&semPtr->numMain);
-  }
+    vacate(&semPtr->numMain);      // unlock critical section
+    vacate(&semPtr->numFull);
+
+  } //end while
 
   return NULL;
-}
-// TO-DO
-// procure(&semPtr->numDelay);       // waiting the consumer signal for refilling the random number
+} // producer end
 
 
 /*  Function: numGenerator();
@@ -107,23 +112,27 @@ void *producer(void *arg) {
  */
 void *consumer(void *arg) {
 
-  procure(&semPtr->numDelay);        // waiting for the producer first signal
-
-  while(printNum > 0) {
-    procure(&semPtr->numMain);
-
-      if(b.minFill < b.curLevel) {
-        printf("consumer: random number is %#06hx\n", b.numPtr[b.indexOut]);
-      } else {
-        vacate(&semPtr->numDelay);
+  while(1) {
+    // printf("consumer: after while(1)\n");
+    procure(&semPtr->numFull);        // waiting for the producer filled the array  // 0 to -1
+    // printf("consumer: after numFull\n");
+    procure(&semPtr->numMain);        // lock critical section
+    // printf("consumer: after numMain\n");
+    while(b.minFill < b.curLevel) {
+      // printf("consumer: in minFill loop\n");
+      if(printNum > 0) {
+        printf("consumer: random number is %#06hx\n", get_buffer());
+        printNum--;
       }
-
-    vacate(&semPtr->numMain);
-    printNum--;
-  }
+      if(b.minFill == b.curLevel) {                        // if reach the minFill
+        vacate(&semPtr->numEmpty);      // notify producer to filled number in array
+      }
+    } // jump out
+    vacate(&semPtr->numMain);         // unlock critical section
+  } // while end
 
   return NULL;
-}
+} // consumer end
 
 // TO-DO
 // vacate(&semPtr->numDelay)        // if minimun fill is reach, signal producer

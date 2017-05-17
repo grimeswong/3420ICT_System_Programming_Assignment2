@@ -28,7 +28,7 @@ typedef struct buffer_t {
 } buffer;
 
 typedef struct numSem {
-  Semaphore numMain, numDelay;
+  Semaphore numMain, numFull, numEmpty;
 } numSem_t; // must put semicolon after this structure
 
 
