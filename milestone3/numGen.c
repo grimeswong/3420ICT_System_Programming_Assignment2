@@ -2,24 +2,18 @@
 //  SID: S2193948
 //  Author: Chun Hung Wong (Grimes)
 //  Program: numGen.c
-//  Purpose: Header file for number generator
+//  Purpose: Generate unsigned int 16 bit numbers by the /dev/random, include functions of number generator, constructor, 
+//    destructor, put and get buffer
 
-// Header files
+/*** Header files ***/
 #include <stdio.h>    //Standard Input/Output library eg. getchar, gets, putchar, puts, sprintf
 #include <stdlib.h>   //General Utilities library eg. atoi, atof, malloc, realloc
 #include <unistd.h>   //eg. sleep(), execvp(), environ(), pipe()
-// #include <string.h>   //String handling library eg. strcpy, strcat, strcmp
-#include <errno.h>    //Error number handling library eg. errno
 #include <fcntl.h>    //Access file, file permission, eg. O_CREAT, O_RDONLY, O_WRONLY,
 #include <stdint.h>   //For using uint16_t
 
 #include "numGen.h"   //customised header file
 #include "sema.h"     //Customised semaphore
-
-// typedef struct Sem {
-//   Semaphore numSem1, numSem2;
-// } Sem_t; // must put semicolon after this structure
-
 
 /*** Global variable ***/
 uint16_t ranNum ;         // random number
@@ -29,18 +23,6 @@ uint16_t reserve[65535];  // array that store the temp random number for later u
 uint16_t *reservePtr;
 uint16_t *oriPtr;         // the original position of the pointer which point to
 
-// Sem_t sem, *semPtr;       // Semaphore
-
-
-/*** Main function for testing only ***/
-// int main()
-// {
-//   numGenerator();
-//
-//   return 0;
-// }
-
-
 /*
 *  Function: numConstructor
 *  Description: initialise the structure of buffer
@@ -48,7 +30,6 @@ uint16_t *oriPtr;         // the original position of the pointer which point to
 *  Return: None
 */
 void numConstructor(minFill, maxBuf) {
-  // printf("In numConstructor now\n");                                          // debugger:
   b.minFill = minFill;   // default value = 0
   b.maxBuf = maxBuf;    // default value = 5
   b.curLevel = 0;  // default value = 0
@@ -59,16 +40,15 @@ void numConstructor(minFill, maxBuf) {
   // printf("numConstructor: &b.numPtr[0] (original) address is %p\n", &b.numPtr[0]);      // debugger:
 
   semPtr = &sem; // assign semaphore pointer
-  //  printf("numConstructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));          // 8 bytes for the b.numPtr
-  // printf("numConstructor: minfill : %d\n", b.minFill);                             // debugger: minimum fill
-  // printf("numConstructor: maxBuf : %d\n", b.maxBuf);                               // debugger: maximum buffer
-  // printf("numConstructor: curLevel = %d\n", b.curLevel);                          // debugger: current level
+  // printf("numConstructor: size of b.numPtr is %lu\n", sizeof(b.numPtr));      // 8 bytes for the b.numPtr
+  // printf("numConstructor: minfill : %d\n", b.minFill);                        // debugger: minimum fill
+  // printf("numConstructor: maxBuf : %d\n", b.maxBuf);                          // debugger: maximum buffer
+  // printf("numConstructor: curLevel = %d\n", b.curLevel);                      // debugger: current level
   initialiser(&semPtr->numMain);                // initial value = 1
-  initialiser(&semPtr->numFull);                 // initial value = 1
-  initialiser(&semPtr->numEmpty);                 // initial value = 1
-  semPtr->numFull.value = 0;                       // change initial value = 0
-  semPtr->numEmpty.value = 0;                       // change initial value = 0
-  // printf("numbConstructor done\n");                                           // debugger:
+  initialiser(&semPtr->numFull);                // initial value = 1
+  initialiser(&semPtr->numEmpty);               // initial value = 1
+  semPtr->numFull.value = 0;                    // change initial value = 0
+  semPtr->numEmpty.value = 0;                   // change initial value = 0
 }
 
 
@@ -78,14 +58,13 @@ void numConstructor(minFill, maxBuf) {
  *  Return: random unsigned integer numbers
  */
  void numGenerator() {
-  //  printf("In numGenerator now\n");                                           // debugger:
    int counter = 0;
    uint16_t *ranPtr = 0;
    ranPtr = &reserve[counter];
-   int fd = open("/dev/random", O_RDONLY);                                      //use file desciptor, stream to get random number
+   int fd = open("/dev/random", O_RDONLY);                                       //use file desciptor, stream to get random number
    if (fd != -1) {
-    //  printf("Successfully create file desciptor\n");                        // debugger: Successfully message
-     while(counter < 65533) {   //set it back to 65533                                             // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
+    //  printf("Successfully create file desciptor\n");                          // debugger: Successfully message
+     while(counter < 65533) {                                                    // 100000 in two seconds, 1000000 in ten seconds, 10000000 in 1 minute
        read(fd, ranPtr, sizeof(ranPtr));
       //  printf("numGenerator: Random number is = %d, counter = %d\n", *ranPtr, counter);        // debugger: get the value of the pointer
       //  printf("numGenerator: reserve[%d] is = %d, counter = %d\n", counter, reserve[counter], counter);
@@ -95,12 +74,9 @@ void numConstructor(minFill, maxBuf) {
      close(fd);
    } else {
      perror("Could not open file to get random number");
-     exit(-1);
-   }           // error message: exit with failure
-  //  printf("numGenerator done\n");                                             // debugger:
+     exit(-1);  // error message: exit with failure
+   }
  }
-
-
 
 
  /*
@@ -110,47 +86,38 @@ void numConstructor(minFill, maxBuf) {
   *  Return: None
   */
  void numDestructor() {
-
-   /*** clean up the array (set value to 0) ***/
+   /*** deep clean up the array (set value to 0) ***/
   //  for(int i=0; i < b.maxBuf; i++) {
   //    *(b.numPtr+i) = 0;
   //  }
    /*** end clean up ***/
+   destructor(&semPtr->numMain);
+   destructor(&semPtr->numFull);
+   destructor(&semPtr->numEmpty);
 
    b.numPtr = oriPtr; // the pointer point back to the original position
-   free(b.numPtr);    // free the allocated memory
-  //  printf("numDestructor: minfill : %d\n", b.minFill);          // debugger:
-  //  printf("numDestructor: maxBuf : %d\n", b.maxBuf);            // debugger:
-  //  printf("numDestructor: curLevel : %d\n", b.curLevel);        // debugger:
+   free(b.numPtr);    // free the allocated memory (uint16_t)
+   free(semPtr);      // free the allocated memory (numSem_t)
  }
 
 
  /*
   *  Function: put_buffer()
-  *  Description: store the random number in the uint16_t pointer (memory)
+  *  Description: store the random number in the uint16_t pointer (memory allocation)
   *  Parameter:  None
   *  Return: None
   */
   void put_buffer() {
-    // printf("In put_buffer now!!!\n");              // debugger:
-    // while(b.curLevel < b.maxBuf) {
       b.numPtr[b.indexIn] = *reservePtr;
       // printf("put_buffer: b.numPtr[b.indexIn = %d] value is %d, address is %p\n",  b.indexIn, b.numPtr[b.indexIn], &b.numPtr[b.indexIn]); // debugger:
-      // printf("put_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
-      // printf("put_buffer: b.indexOut is %d    ", b.indexOut); // debugger:
-      // printf("put_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
       reservePtr++;
       b.indexIn++;
       if(b.indexIn == b.maxBuf) { // if indexIn reach maximum buffer index, reset
         b.indexIn = 0;  // reset to the beginning of an array
       }
       b.curLevel++;
-    // }
-
-    // printf("put_buffer: minfill : %d\n", b.minFill);          // debugger:
-    // printf("put_buffer: maxBuf : %d\n", b.maxBuf);            // debugger:
-    // printf("put_buffer: curLevel : %d\n", b.curLevel);        // debugger:
   }
+
 
  /*
   *  Function: get_buffer()
@@ -159,21 +126,14 @@ void numConstructor(minFill, maxBuf) {
   *  Return: a unsiged integer 16 bit random number
   */
 
-  uint16_t get_buffer() {                          // get the value from the numGenerator
-    // printf("In get_buffer now!!!\n");              // debugger:
-      // if(b.curLevel > b.minFill) {
-        ranNum = b.numPtr[b.indexOut];                   // get the oldest number
+  uint16_t get_buffer() {                                                       // get the value from the numGenerator
+        ranNum = b.numPtr[b.indexOut];                                           // get the oldest number
         // printf("get_buffer: b.numPtr[b.indexOut = %d] value is %d    ",  b.indexOut, b.numPtr[b.indexOut]); // debugger:
-        b.numPtr[b.indexOut] = 0;                       // clean up the value
-        // printf("get_buffer: b.indexIn is %d   ", b.indexIn); // debugger:
-        // printf("get_buffer: b.indexOut is %d   ", b.indexOut); // debugger:
-        // printf("get_buffer: b.curLevel is %d\n", b.curLevel); // debugger:
+        b.numPtr[b.indexOut] = 0; /*** clean up the value ***/
         b.indexOut++;
         if(b.indexOut == b.maxBuf) {
-          b.indexOut = 0;                             // reset to the begining of an array
+          b.indexOut = 0; /*** reset to index of the begining of an array ***/
         }
         b.curLevel--;
-      // }
-
     return ranNum;
   }

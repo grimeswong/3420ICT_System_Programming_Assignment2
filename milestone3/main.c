@@ -13,9 +13,8 @@
 #include "numGen.h"
 #include "sema.h"
 
-
 #define DEFAULT_MINFILL 0
-#define DEFAULT_MAXBUFFER 10
+#define DEFAULT_MAXBUFFER 5
 
 /*** Function declaration (prototype) ***/
 void *producer(void *arg);
@@ -26,10 +25,16 @@ int rt = 0;  // for error debugging
 int n = 0;
 int printNum = 0;
 
+/*
+ *  Function: main
+ *  Description: created main thread, producer and consumer threads which generate 16bit random integer number
+ *  Parameters:  minimum fill, maximum buffer
+ *  Return: EXIT_SUCCESS
+ */
 
 int main()
 {
-
+  /*** Local variable ***/
   pthread_t producerT, consumerT;
   numConstructor(DEFAULT_MINFILL, DEFAULT_MAXBUFFER);                // numConstructor (maxBuf, minFill)
 
@@ -43,11 +48,13 @@ int main()
   if(rt != 0) { perror("Main: Couldn't create the consumer thread!!!"); }                  // error message:
 
 
-  /*** while loop here for waiting user input a number for print out how many numbers ***/
+  /*** while loop  for the user input a number for printing out random numbers ***/
   char readLine[31];
   char *linePtr = fgets(readLine, 30, stdin);
   if(strcmp(linePtr, "exit\n") == 0) {
     exit(EXIT_SUCCESS);
+    numDestructor();       // destroy all the memory allocation
+    pthread_exit(NULL);       // The last thing the main should do
   }
   while(strcmp(linePtr,"exit\n") != 0) {
     printNum = atoi(linePtr);
@@ -55,10 +62,10 @@ int main()
     linePtr = fgets(readLine, 30, stdin);
     if(strcmp(linePtr, "exit\n") == 0) {
       exit(EXIT_SUCCESS);
+      numDestructor();       // destroy all the memory allocation
+      pthread_exit(NULL);       // The last thing the main should do
     }
   }
-
-
 
   /*** Shouldn't use pthread_join this time ***/
   /*** Wait the child thread to join ***/
@@ -72,10 +79,6 @@ int main()
   //   perror("Consumer thread(s) couldn't join the main thread\n");                 // error message:
   // }
 
-  numDestructor();       // destroy all the memory allocation
-
-  pthread_exit(NULL);       // The last thing the main should do
-
   return 0;
 }
 
@@ -85,19 +88,18 @@ int main()
  *  Return: None
  */
 void *producer(void *arg) {
-  numGenerator();                    // generate number and store in reserve
-  vacate(&semPtr->numEmpty);         // 0 to 1
+  numGenerator();                    // generate number and store in reserve array
+  vacate(&semPtr->numEmpty);         // 0 to 1 notify start to fill the array
 
   while(1) {
-    // printf("producer: after while(1)\n");
     procure(&semPtr->numEmpty);      // lock empty
     procure(&semPtr->numMain);       // lock critical section
     while (b.curLevel < b.maxBuf) {     // if current level reach the maximum buffer, signal consumer
-      printf("producer: put_buffer = refill\n");
+      printf("producer: put_buffer = refill\n");      /*** debugger: ***/
       put_buffer();
     }
     vacate(&semPtr->numMain);      // unlock critical section
-    vacate(&semPtr->numFull);
+    vacate(&semPtr->numFull);      // notify consumer the array has filled
 
   } //end while
 
@@ -113,29 +115,24 @@ void *producer(void *arg) {
 void *consumer(void *arg) {
 
   while(1) {
-    // printf("consumer: after while(1)\n");
     procure(&semPtr->numFull);        // waiting for the producer filled the array  // 0 to -1
-    // printf("consumer: after numFull\n");
     procure(&semPtr->numMain);        // lock critical section
-    // printf("consumer: after numMain\n");
     while(b.minFill < b.curLevel) {
       // printf("consumer: in minFill loop\n");
       if(printNum > 0) {
-        printf("consumer: random number is %#06hx\n", get_buffer());
+        printf("consumer: random number is %#06hx\n", get_buffer());  /*** debugger: output *///
         printNum--;
       }
       if(b.minFill == b.curLevel) {                        // if reach the minFill
         vacate(&semPtr->numEmpty);      // notify producer to filled number in array
       }
-    } // jump out
+    }
     vacate(&semPtr->numMain);         // unlock critical section
   } // while end
 
   return NULL;
 } // consumer end
 
-// TO-DO
-// vacate(&semPtr->numDelay)        // if minimun fill is reach, signal producer
 
 /*** testing get_buffer ***/
 // printf("Main: get_buffer() = %u\n", get_buffer());
