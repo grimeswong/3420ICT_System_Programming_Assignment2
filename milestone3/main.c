@@ -32,11 +32,32 @@ int printNum = 0;
  *  Return: EXIT_SUCCESS
  */
 
-int main()
+int main(int argc, char *argv[])
 {
   /*** Local variable ***/
   pthread_t producerT, consumerT;
-  numConstructor(DEFAULT_MINFILL, DEFAULT_MAXBUFFER);                // numConstructor (maxBuf, minFill)
+  char readLine[31];
+  char *linePtr;
+  int arg1;
+  int arg2;
+
+
+  /*** two situations, only one argument or two argument, if one which is the maximum buffer, otherwise Default settings are applied ***/
+  if(argc == 2) {
+    printf("One argument, argument[1] is %s\n", argv[1]);
+    arg1 = DEFAULT_MINFILL;
+    arg2 = atoi(argv[1]);
+  } else if (argc == 3) {
+    printf("Two arguments, argument[1] is %s, argument[2] is %s\n", argv[1], argv[2]);
+    arg1 = atoi(argv[1]);
+    arg2 = atoi(argv[2]);
+  } else {
+    printf("Default setting applied\n");
+    arg1 = DEFAULT_MINFILL;
+    arg2 = DEFAULT_MAXBUFFER;
+  }
+
+  numConstructor(arg1, arg2);                // numConstructor (maxBuf, minFill)
 
 
   /*** Create the producer child thread ***/
@@ -49,12 +70,11 @@ int main()
 
 
   /*** while loop  for the user input a number for printing out random numbers ***/
-  char readLine[31];
-  char *linePtr = fgets(readLine, 30, stdin);
+  linePtr = fgets(readLine, 30, stdin);
   if(strcmp(linePtr, "exit\n") == 0) {
     exit(EXIT_SUCCESS);
     numDestructor();       // destroy all the memory allocation
-    pthread_exit(NULL);       // The last thing the main should do
+    pthread_exit(NULL);    // The last thing the main should do
   }
   while(strcmp(linePtr,"exit\n") != 0) {
     printNum = atoi(linePtr);
@@ -63,7 +83,7 @@ int main()
     if(strcmp(linePtr, "exit\n") == 0) {
       exit(EXIT_SUCCESS);
       numDestructor();       // destroy all the memory allocation
-      pthread_exit(NULL);       // The last thing the main should do
+      pthread_exit(NULL);    // The last thing the main should do
     }
   }
 
